@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { runBuild, runLink, runScan, runValidate } from './index.js';
+import { runBuild, runLink, runScan, runServe, runValidate } from './index.js';
 
 const program = new Command('apimap').description('Map your APIs as an interactive graph').version('0.1.0');
 
@@ -49,6 +49,18 @@ program
   .option('-n, --note <text>', 'short note')
   .action(async (source: string, target: string, opts: { dir: string; protocol: string; confidence: string; origin: string; evidence?: string[]; note?: string }) => {
     process.exitCode = await runLink(opts.dir, source, target, opts);
+  });
+
+program
+  .command('serve')
+  .description('open the local editor: browse, create, edit and delete services')
+  .argument('[dir]', 'catalog directory', '.')
+  .option('-p, --port <port>', 'port to listen on (localhost only)', (v) => Number(v), 4321)
+  .option('--open', 'open the browser')
+  .option('--web-dist <dir>', 'use a custom web viewer build')
+  .action(async (dir: string, opts: { port: number; open?: boolean; webDist?: string }) => {
+    const code = await runServe(dir, opts);
+    if (code !== 0) process.exitCode = code;
   });
 
 program.parseAsync().catch((err: unknown) => {
