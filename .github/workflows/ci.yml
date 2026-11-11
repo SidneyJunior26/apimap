@@ -23,7 +23,7 @@ jobs:
       - run: pnpm test
       - run: pnpm build
       - run: pnpm apimap validate examples/acme-demo
-      - run: pnpm --filter @apimap/web exec playwright install --with-deps chromium
+      - run: pnpm --filter @apimap/web exec playwright install chromium
       - run: pnpm --filter @apimap/web e2e
         env:
           CI: true
