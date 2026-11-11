@@ -18,6 +18,7 @@ interface Point { x: number; y: number }
 const PARTICLE_SPEED = 70; // px per second
 const MAX_PARTICLE_EDGES = 3000;
 const CURVATURE = 0.14;
+const MIN_LABELED_GROUP_RADIUS = 110; // px on screen
 
 function hexToRgb(color: string): [number, number, number] {
   const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(color);
@@ -100,6 +101,13 @@ export class LinksLayer {
     if (this.canvas.width !== Math.round(w * dpr) || this.canvas.height !== Math.round(h * dpr)) {
       this.canvas.width = Math.round(w * dpr);
       this.canvas.height = Math.round(h * dpr);
+    }
+    // The bitmap is dpr times larger than the layer; the CSS size keeps it on top of sigma's layers.
+    // Sigma only sizes layers that exist when it resizes, and this one is added afterwards.
+    const css = `${w}px`;
+    if (this.canvas.style.width !== css || this.canvas.style.height !== `${h}px`) {
+      this.canvas.style.width = css;
+      this.canvas.style.height = `${h}px`;
     }
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     return { w, h };
@@ -199,6 +207,7 @@ export class LinksLayer {
       if (p) buckets.set(attrs.group, [...(buckets.get(attrs.group) ?? []), p]);
     });
     const ctx = this.ctx;
+    const placed: Array<{ x: number; y: number; w: number; h: number }> = [];
     for (const [group, points] of buckets) {
       const info = this.groups[group];
       if (!info || points.length < 2) continue;
@@ -215,10 +224,16 @@ export class LinksLayer {
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.fill();
+      // Far out, groups overlap: skip names on tiny areas or on top of a name already drawn.
+      if (r < MIN_LABELED_GROUP_RADIUS) continue;
       ctx.font = '600 11px "Inter Variable", system-ui, sans-serif';
+      const text = info.label.toUpperCase();
+      const box = { x: cx - ctx.measureText(text).width / 2 - 4, y: cy - r + 16, w: ctx.measureText(text).width + 8, h: 16 };
+      if (placed.some((b) => box.x < b.x + b.w && b.x < box.x + box.w && box.y < b.y + b.h && b.y < box.y + box.h)) continue;
+      placed.push(box);
       ctx.textAlign = 'center';
       ctx.fillStyle = rgba(color, highlight ? 0.25 : this.state.light ? 0.75 : 0.55);
-      ctx.fillText(info.label.toUpperCase(), cx, cy - r + 28);
+      ctx.fillText(text, cx, cy - r + 28);
     }
   }
 }
