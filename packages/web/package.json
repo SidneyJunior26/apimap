@@ -1,0 +1,29 @@
+{
+  "name": "@apimap/web",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "dev:demo": "tsx scripts/demo-graph.ts && vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@apimap/core": "workspace:^",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tsx": "^4.19.2",
+    "vite": "^5.4.11"
+  }
+}
