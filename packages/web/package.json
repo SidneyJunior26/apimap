@@ -15,19 +15,22 @@
     "e2e": "node e2e/prepare.mjs && playwright test"
   },
   "dependencies": {
+    "3d-force-graph": "1.80.1",
     "@fontsource-variable/inter": "^5.1.0",
     "graphology": "^0.25.4",
     "graphology-layout-forceatlas2": "^0.10.1",
     "graphology-types": "^0.24.8",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "sigma": "^3.0.0"
+    "sigma": "^3.0.0",
+    "three": "0.186.1"
   },
   "devDependencies": {
     "@apimap/core": "workspace:^",
     "@playwright/test": "^1.49.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "@types/three": "0.186.0",
     "@vitejs/plugin-react": "^4.3.4",
     "tsx": "^4.19.2",
     "vite": "^5.4.11"

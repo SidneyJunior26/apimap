@@ -1,13 +1,14 @@
 import type { GraphJson } from '@apimap/core';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type MutableRefObject } from 'react';
 import Sigma from 'sigma';
 import { searchMatches, type Visible } from '../filters';
 import type { Selection } from '../state';
-import { GlowNodeProgram } from './glowNodeProgram';
-import { drawHoverLabel } from './labels';
+import type { Theme } from '../viewState';
+import type { GraphController, ViewCache } from './controller';
+import { createGlowProgram } from './glowNodeProgram';
+import { createHoverLabel } from './labels';
 import { runLayout, syncGraphology, toGraphology, type ApiGraph, type EdgeAttrs, type NodeAttrs } from './layout';
 import { LinksLayer, type LinksState } from './links';
-import { Toolbar } from './Toolbar';
 import { neighbors } from './traversal';
 
 interface Props {
@@ -15,25 +16,31 @@ interface Props {
   visible: Visible;
   query: string;
   selection: Selection;
+  theme: Theme;
+  cache: ViewCache;
+  controllerRef: MutableRefObject<GraphController | null>;
   onSelect: (id: string | null) => void;
-  onResetFilters: () => void;
 }
 
-const DIM_COLOR = 'rgba(100, 116, 139, 0.18)';
 const FALLBACK_GROUP_COLOR = '#64748b';
+const THEME = {
+  nebula: { dim: 'rgba(100, 116, 139, 0.18)', label: '#c9d2e3', glow: 0.42 },
+  paper: { dim: 'rgba(100, 116, 139, 0.22)', label: '#2a3242', glow: 0.18 },
+} as const;
 
-function prefersReducedMotion(): boolean {
+export function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-export function GraphCanvas({ graph, visible, query, selection, onSelect, onResetFilters }: Props) {
+/** 2D view. Mount it with `key={theme}`: the renderer is rebuilt on theme change, keeping positions in `cache`. */
+export function GraphCanvas({ graph, visible, query, selection, theme, cache, controllerRef, onSelect }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sigmaRef = useRef<Sigma<NodeAttrs, EdgeAttrs> | null>(null);
   const hoveredRef = useRef<string | null>(null);
   const linksRef = useRef<LinksLayer | null>(null);
   const graphologyRef = useRef<ApiGraph | null>(null);
   const stopLayoutRef = useRef<() => void>(() => {});
-  const linksState = useRef<LinksState>({ visibleEdges: visible.edgeIds, visibleNodes: visible.nodeIds, highlight: null, animate: !prefersReducedMotion() });
+  const linksState = useRef<LinksState>({ visibleEdges: visible.edgeIds, visibleNodes: visible.nodeIds, highlight: null, animate: !prefersReducedMotion(), light: theme === 'paper' });
   const propsRef = useRef({ graph, visible, query, selection, onSelect });
   propsRef.current = { graph, visible, query, selection, onSelect };
 
@@ -65,19 +72,21 @@ export function GraphCanvas({ graph, visible, query, selection, onSelect, onRese
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    const g = toGraphology(graph);
+    const look = THEME[theme];
+    const known = cache.positions.size > 0;
+    const g = toGraphology(graph, cache.positions);
     graphologyRef.current = g;
     const sigma = new Sigma<NodeAttrs, EdgeAttrs>(g, container, {
       allowInvalidContainer: true,
       defaultNodeType: 'glow',
-      nodeProgramClasses: { glow: GlowNodeProgram },
+      nodeProgramClasses: { glow: createGlowProgram(look.glow) },
       labelFont: '"Inter Variable", system-ui, sans-serif',
       labelSize: 12,
       labelWeight: '500',
-      labelColor: { color: '#c9d2e3' },
+      labelColor: { color: look.label },
       labelRenderedSizeThreshold: 9,
       labelDensity: 0.6,
-      defaultDrawNodeHover: drawHoverLabel,
+      defaultDrawNodeHover: createHoverLabel(theme),
       zIndex: true,
       minCameraRatio: 0.08,
       maxCameraRatio: 4,
@@ -87,7 +96,7 @@ export function GraphCanvas({ graph, visible, query, selection, onSelect, onRese
         if (!vis.nodeIds.has(id)) return { ...data, hidden: true };
         const highlight = linksState.current.highlight;
         const isSelected = sel.selectedId === id;
-        if (highlight && !highlight.has(id)) return { ...data, color: DIM_COLOR, label: '', zIndex: 0 };
+        if (highlight && !highlight.has(id)) return { ...data, color: look.dim, label: '', zIndex: 0 };
         return {
           ...data,
           size: isSelected ? data.size * 1.35 : data.size,
@@ -125,10 +134,26 @@ export function GraphCanvas({ graph, visible, query, selection, onSelect, onRese
     };
     media.addEventListener('change', onMotion);
 
-    stopLayoutRef.current = runLayout(g);
+    if (cache.camera2d) sigma.getCamera().setState(cache.camera2d);
+    stopLayoutRef.current = runLayout(g, known ? 700 : 2500);
     refresh();
 
+    controllerRef.current = {
+      zoomIn: () => void sigma.getCamera().animatedZoom({ duration: 250 }),
+      zoomOut: () => void sigma.getCamera().animatedUnzoom({ duration: 250 }),
+      fit: () => void sigma.getCamera().animatedReset({ duration: 400 }),
+      snapshot: () => {
+        // WebGL buffers are only readable right after a draw: render, then copy in the same task.
+        sigma.refresh();
+        links.draw(performance.now());
+        return ['links', 'nodes', 'labels'].map((id) => container.querySelector<HTMLCanvasElement>(`canvas.sigma-${id}`)).filter((c): c is HTMLCanvasElement => Boolean(c));
+      },
+    };
+
     return () => {
+      g.forEachNode((id, a) => cache.positions.set(id, { x: a.x, y: a.y }));
+      cache.camera2d = sigma.getCamera().getState();
+      controllerRef.current = null;
       media.removeEventListener('change', onMotion);
       stopLayoutRef.current();
       links.kill();
@@ -165,10 +190,5 @@ export function GraphCanvas({ graph, visible, query, selection, onSelect, onRese
     camera.animate({ x: d.x, y: d.y, ratio: Math.min(camera.ratio, 0.7) }, { duration: prefersReducedMotion() ? 0 : 500, easing: 'cubicInOut' });
   }, [selection.selectedId]);
 
-  return (
-    <>
-      <div ref={containerRef} className="canvas" data-testid="graph-canvas" />
-      <Toolbar sigma={sigmaRef} onResetFilters={onResetFilters} />
-    </>
-  );
+  return <div ref={containerRef} className="canvas" data-testid="graph-canvas" />;
 }
