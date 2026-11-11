@@ -20,15 +20,6 @@ importers:
 
   packages/cli:
     dependencies:
-      '@apimap/core':
-        specifier: workspace:*
-        version: link:../core
-      '@apimap/scanners':
-        specifier: workspace:^
-        version: link:../scanners
-      '@apimap/web':
-        specifier: workspace:^
-        version: link:../web
       '@hono/node-server':
         specifier: ^1.13.7
         version: 1.19.19(hono@4.13.18)
@@ -47,13 +38,25 @@ importers:
       picocolors:
         specifier: ^1.1.1
         version: 1.1.1
-    devDependencies:
-      tsup:
-        specifier: ^8.3.5
-        version: 8.5.1(postcss@8.5.32)(tsx@4.23.15)(typescript@5.9.3)(yaml@2.9.1)
       yaml:
         specifier: ^2.6.1
         version: 2.9.1
+      zod:
+        specifier: ^3.24.1
+        version: 3.25.76
+    devDependencies:
+      '@apimap/core':
+        specifier: workspace:*
+        version: link:../core
+      '@apimap/scanners':
+        specifier: workspace:*
+        version: link:../scanners
+      '@apimap/web':
+        specifier: workspace:*
+        version: link:../web
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(postcss@8.5.32)(tsx@4.23.15)(typescript@5.9.3)(yaml@2.9.1)
 
   packages/core:
     dependencies:

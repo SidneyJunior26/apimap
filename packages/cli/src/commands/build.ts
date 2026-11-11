@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { cp, mkdir, realpath, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -13,11 +14,16 @@ export interface BuildOptions {
   webDist?: string;
 }
 
+/** Viewer assets: shipped next to the bundled CLI (dist/web) or, in the monorepo, the @apimap/web build. */
 export function resolveWebDist(): string {
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  for (const candidate of [path.join(here, 'web'), path.join(here, '..', 'web')]) {
+    if (existsSync(path.join(candidate, 'index.html'))) return candidate;
+  }
   try {
     return path.dirname(fileURLToPath(import.meta.resolve('@apimap/web/dist/index.html')));
   } catch {
-    throw new Error('web viewer assets not found: install @apimap/web or pass --web-dist');
+    throw new Error('web viewer assets not found: reinstall apimap or pass --web-dist');
   }
 }
 

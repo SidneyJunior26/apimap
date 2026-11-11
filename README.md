@@ -33,7 +33,22 @@ A barra no canto inferior esquerdo tem três botões além do zoom. "3D" troca p
 
 O modo e o tema ficam na URL (`?view=3d&theme=paper`), então um link compartilhado abre do mesmo jeito. Sem parâmetros, o tema segue a preferência do sistema. Se o navegador não tiver WebGL, o 3D avisa e volta para o 2D.
 
-## Início rápido
+## Instalação
+
+```bash
+npm install -g apimap      # ou use direto com npx apimap <comando>
+apimap --version
+```
+
+Precisa de Node.js 20 ou mais novo. Para criar um catálogo, basta uma pasta com `services/*.yaml` (veja a estrutura abaixo):
+
+```bash
+apimap validate meu-catalogo
+apimap build meu-catalogo          # site estático em meu-catalogo/dist
+apimap serve meu-catalogo --open   # editor local
+```
+
+## Início rápido com o exemplo
 
 ```bash
 git clone https://github.com/SidneyJunior26/apimap.git
@@ -220,7 +235,7 @@ pnpm --filter @apimap/web dev:demo       # visualizador com hot reload usando o 
 pnpm --filter @apimap/web e2e            # testes de ponta a ponta (Playwright)
 ```
 
-O repositório tem quatro pacotes: `@apimap/core` (schema, leitura, validação, grafo e merge), `@apimap/scanners` (descoberta), `apimap` (CLI e servidor do editor) e `@apimap/web` (visualizador e editor).
+O repositório tem quatro pacotes: `@apimap/core` (schema, leitura, validação, grafo e merge), `@apimap/scanners` (descoberta), `apimap` (CLI e servidor do editor) e `@apimap/web` (visualizador e editor). Só o `apimap` é publicado no npm, já com os outros três embutidos. O passo a passo de publicação está em [RELEASING.md](RELEASING.md).
 
 ## Roadmap
 
