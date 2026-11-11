@@ -21,7 +21,7 @@ O apimap guarda essa informação junto do código, num formato que dá para rev
 
 Cada serviço é um arquivo YAML em `services/`. As dependências ficam no próprio arquivo e cada uma diz de onde veio: `confirmed` quando foi encontrada em código ou configuração, `inferred` quando um agente de IA deduziu lendo o código, `manual` quando alguém cadastrou. Sempre que possível, a dependência aponta o `arquivo:linha` em que aparece.
 
-O comando `apimap scan` lê os repositórios e atualiza esses arquivos. Ele não apaga nem altera o que foi cadastrado à mão. O comando `apimap build` transforma o catálogo num site estático que pode ficar no GitHub Pages, num bucket S3 ou num servidor interno.
+O comando `apimap scan` lê os repositórios e atualiza esses arquivos. Ele não apaga nem altera o que foi cadastrado à mão. Para cadastrar ou corrigir serviços sem abrir o YAML, use `apimap serve`, que sobe um editor local. O comando `apimap build` transforma o catálogo num site estático que pode ficar no GitHub Pages, num bucket S3 ou num servidor interno.
 
 No visualizador, cada tipo de serviço tem uma cor. Partículas andam pelas arestas no sentido da chamada, os grupos (domínios) ganham uma área própria e, ao clicar num serviço, dá para ver quem depende dele (upstream) e do que ele depende (downstream), com a profundidade que você escolher.
 
@@ -127,6 +127,22 @@ A pasta [`skills/`](skills) tem instruções prontas para agentes de código:
 - [`apimap-discover`](skills/apimap-discover/SKILL.md) roda o scan, procura no código chamadas que a configuração não mostra (HttpClient, fetch, axios, WCF, SignalR, filas) e registra cada uma com `apimap link` como `inferred`, junto com a evidência.
 - [`apimap-add`](skills/apimap-add/SKILL.md) cadastra um serviço novo fazendo poucas perguntas e valida o resultado.
 
+## Editor local
+
+```bash
+apimap serve meu-catalogo --open
+```
+
+O comando abre o visualizador em `http://localhost:4321` com edição ligada. O botão "New service" cria um serviço, e o painel de detalhes ganha "Edit" e "Delete". Um nó fantasma pode ser cadastrado direto pelo botão "Add to catalog". Tudo vai para os YAML de `services/`, com os comentários preservados, e dá para revisar as mudanças com `git diff` antes de abrir o pull request.
+
+Algumas regras do editor:
+
+- Antes de excluir, a confirmação mostra quais serviços dependem daquele. Depois da exclusão, essas ligações passam a apontar para um nó fantasma.
+- Editar uma dependência encontrada pelo scan transforma ela em `manual`, para que o próximo scan não desfaça a alteração.
+- Serviços com `locked: true` aparecem sem os botões de edição.
+- Se um arquivo mudar por fora (no editor de texto ou num `apimap scan`), o navegador atualiza sozinho e os nós que já existiam ficam no lugar.
+- O servidor só aceita conexões da própria máquina e recusa pedidos vindos de outros sites.
+
 ## CLI
 
 | Comando | O que faz |
@@ -135,6 +151,7 @@ A pasta [`skills/`](skills) tem instruções prontas para agentes de código:
 | `apimap build [dir] [-o saida]` | Valida o catálogo e gera o visualizador com o `graph.json` em `saida` (por padrão, `<dir>/dist`). |
 | `apimap scan [dir] [-s glob] [-i domínio] [--dry-run] [--create-stubs]` | Lê os repositórios e atualiza serviços e dependências no catálogo. |
 | `apimap link <origem> <alvo> [-d dir] [-p protocolo] [-c confiança] [-e arquivo:linha] [-n nota]` | Adiciona ou atualiza uma dependência sem mexer nos comentários do arquivo. As skills usam este comando. |
+| `apimap serve [dir] [-p porta] [--open]` | Abre o editor local para criar, editar e excluir serviços (porta padrão 4321, só para a própria máquina). |
 
 ## Desenvolvimento
 
@@ -145,13 +162,13 @@ pnpm --filter @apimap/web dev:demo       # visualizador com hot reload usando o 
 pnpm --filter @apimap/web e2e            # testes de ponta a ponta (Playwright)
 ```
 
-O repositório tem quatro pacotes: `@apimap/core` (schema, leitura, validação, grafo e merge), `@apimap/scanners` (descoberta), `apimap` (CLI) e `@apimap/web` (visualizador).
+O repositório tem quatro pacotes: `@apimap/core` (schema, leitura, validação, grafo e merge), `@apimap/scanners` (descoberta), `apimap` (CLI e servidor do editor) e `@apimap/web` (visualizador e editor).
 
 ## Roadmap
 
 - M1, concluída: catálogo em YAML, validação, site estático e grafo 2D.
 - M2, concluída: `apimap scan` (configuração, OpenAPI, .NET, Node e docker-compose) e skills para agentes de IA.
-- M3: `apimap serve`, com um editor local para criar, editar e excluir serviços.
+- M3, concluída: `apimap serve`, com um editor local para criar, editar e excluir serviços.
 - M4: modo 3D para apresentações, tema claro e exportação em PNG.
 - M5: botão "Propor mudança" no site publicado, que abre um pull request, catálogos federados e exportação para Mermaid.
 
