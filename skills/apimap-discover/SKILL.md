@@ -1,58 +1,58 @@
 ---
 name: apimap-discover
-description: Discover the dependencies of a service by reading its source code and record them in an apimap catalog. Use when asked to map, document or update which APIs, databases, queues, SOAP services, websockets or external vendors a repository calls.
+description: Descobre as dependências de um serviço lendo o código-fonte e as registra em um catálogo apimap. Use quando pedirem para mapear, documentar ou atualizar quais APIs, bancos de dados, filas, serviços SOAP, websockets ou fornecedores externos um repositório chama.
 ---
 
 # apimap-discover
 
-Goal: complete the apimap catalog for one or more repositories. The deterministic scanner finds what is in config files; you find what is only visible in code, and record it as `inferred` with evidence.
+Objetivo: completar o catálogo apimap de um ou mais repositórios. O scanner determinístico encontra o que está nos arquivos de configuração; você encontra o que só aparece no código e registra como `inferred`, com evidência.
 
-## Inputs
+## Entradas
 
-- Catalog directory (contains `apimap.config.yaml` and `services/`). Ask if unknown.
-- Repository directory or directories to analyze.
+- Diretório do catálogo (contém `apimap.config.yaml` e `services/`). Pergunte se não souber.
+- Diretório ou diretórios dos repositórios a analisar.
 
-## Steps
+## Passos
 
-1. **Run the scanner first** so you only add what it cannot see:
+1. **Rode o scanner primeiro**, para registrar só o que ele não consegue ver:
    ```bash
-   npx apimap scan <catalog> --source <repo>
+   npx apimap scan <catalogo> --source <repo>
    ```
-   Read the report: new services, added edges and the **unresolved hosts** list.
+   Leia o relatório: serviços novos, arestas adicionadas e as listas de **hosts sem dono** (internos e externos).
 
-2. **Resolve unresolved hosts.** For each host in the report, find which catalog service owns it (`services/*.yaml`, field `hosts`). If you find the owner, add the host to that service's `hosts` list. If it belongs to a vendor, create an `external` service (see the `apimap-add` skill). Re-run the scan.
+2. **Resolva os hosts sem dono.** Para cada host do relatório, descubra qual serviço do catálogo o atende (`services/*.yaml`, campo `hosts`). Encontrou o dono? Adicione o host à lista `hosts` desse serviço. Se for um fornecedor, crie um serviço `external` (veja a skill `apimap-add`). Se o domínio é da empresa e ainda não está em `scan.internalDomains` no `apimap.config.yaml`, sugira incluí-lo. Rode o scan de novo.
 
-3. **Read the code for calls the scanner cannot see.** Look for:
-   - HTTP clients: `HttpClient`/`IHttpClientFactory`/Refit interfaces (.NET), `fetch`/`axios`/`got`/`ky` (JS/TS), `RestTemplate`/`WebClient`/Feign (Java), `requests`/`httpx` (Python).
-   - SOAP/WCF: service references, generated `*Client` proxies, `.wsdl` files.
-   - Real-time: SignalR hubs and clients, `WebSocket`, `socket.io`.
-   - Messaging: publishers and consumers for RabbitMQ, Kafka, SQS/SNS, Azure Service Bus (the queue or topic is the target).
-   - gRPC stubs, GraphQL clients, FTP/SFTP clients, direct database access.
-   - Base URLs assembled from configuration keys: follow the key to its config value.
+3. **Leia o código atrás de chamadas que o scanner não vê.** Procure:
+   - Clientes HTTP: `HttpClient`/`IHttpClientFactory`/interfaces Refit (.NET), `fetch`/`axios`/`got`/`ky` (JS/TS), `RestTemplate`/`WebClient`/Feign (Java), `requests`/`httpx` (Python).
+   - SOAP/WCF: referências de serviço, proxies `*Client` gerados, arquivos `.wsdl`.
+   - Tempo real: hubs e clientes SignalR, `WebSocket`, `socket.io`.
+   - Mensageria: publicadores e consumidores de RabbitMQ, Kafka, SQS/SNS, Azure Service Bus (a fila ou o tópico é o alvo).
+   - Stubs gRPC, clientes GraphQL, clientes FTP/SFTP, acesso direto a banco de dados.
+   - URLs base montadas a partir de chaves de configuração: siga a chave até o valor na configuração.
 
-4. **Record each finding** with the CLI (it keeps comments and formatting):
+4. **Registre cada achado** pela CLI (ela preserva comentários e formatação):
    ```bash
-   npx apimap link <source-id> <target-id> -d <catalog> \
+   npx apimap link <id-origem> <id-alvo> -d <catalogo> \
      --protocol <http|soap|ws|grpc|graphql|amqp|kafka|sql|ftp> \
      --confidence inferred --origin agent \
-     --evidence <relative/file/path:line> --note "<what the call does, under 80 chars>"
+     --evidence <caminho/relativo/arquivo:linha> --note "<o que a chamada faz, até 80 caracteres>"
    ```
-   - `source-id`: the service whose code makes the call.
-   - `target-id`: an existing service id. If none exists, create it first with `apimap-add`.
-   - One `--evidence` per call site you verified, at most three.
-   - Use `--confidence confirmed` only when the target is unambiguous in code (a literal URL or a generated client for that exact service).
+   - `id-origem`: o serviço cujo código faz a chamada.
+   - `id-alvo`: um id existente no catálogo. Se não existir, crie antes com `apimap-add`.
+   - Um `--evidence` para cada ponto de chamada verificado, no máximo três.
+   - Use `--confidence confirmed` só quando o alvo é inequívoco no código (URL literal ou cliente gerado para aquele serviço específico).
 
-5. **Validate** and fix anything reported:
+5. **Valide** e corrija o que for apontado:
    ```bash
-   npx apimap validate <catalog>
+   npx apimap validate <catalogo>
    ```
 
-6. **Summarize** for the user: dependencies added per service, hosts you could not attribute, and anything that needs a human decision.
+6. **Resuma** para o usuário: dependências adicionadas por serviço, hosts que você não conseguiu atribuir e o que precisa de decisão humana.
 
-## Rules
+## Regras
 
-- Never write full URLs, credentials, tokens, connection strings or secrets into the catalog. Hosts and `file:line` evidence only.
-- Never edit dependencies whose `origin` is `manual`, and never touch services with `locked: true`.
-- Do not duplicate what the scanner already recorded (`origin: scan`).
-- Do not read real `.env` files or secret stores.
-- Prefer fewer, verified links over many guesses. When unsure, list it in the summary instead of linking.
+- Nunca grave no catálogo URLs completas, credenciais, tokens, connection strings ou segredos. Só hosts e evidência `arquivo:linha`.
+- Nunca edite dependências com `origin: manual` e nunca mexa em serviços com `locked: true`.
+- Não duplique o que o scanner já registrou (`origin: scan`).
+- Não leia arquivos `.env` reais nem cofres de segredos.
+- Prefira poucas ligações verificadas a muitos palpites. Na dúvida, liste no resumo em vez de registrar.

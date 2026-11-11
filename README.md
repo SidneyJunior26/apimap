@@ -60,6 +60,10 @@ Nativos: `bff`, `core`, `web`, `worker`, `webservice`, `websocket`, `grpc`, `gra
 name: Acme API Map
 sources:
   - ../repos/*            # cada diretório é um repositório a ser escaneado
+scan:
+  internalDomains:        # domínios da empresa; hosts neles nunca viram "external"
+    - acme.internal       # o próprio domínio e qualquer subdomínio
+    - '*.corp.example'    # só subdomínios
 kinds:
   delphi: { label: Delphi app, color: '#fb7185' }
 groups:
@@ -89,7 +93,8 @@ Como o scan atualiza o catálogo:
 - Cada URL é casada com o campo `hosts` dos serviços (maior prefixo `host/caminho` vence) ou com o `id` (nomes do docker-compose).
 - Só entradas com `origin: scan` são substituídas; `agent` e `manual` nunca são alteradas. `locked: true` congela o serviço.
 - Comentários e formatação dos YAML são preservados; rodar o scan de novo sem mudanças não reescreve nada.
-- Hosts sem dono aparecem no relatório. `--create-stubs` cria serviços `external` para eles (revise o `kind` depois).
+- Hosts sem dono aparecem no relatório, separados em internos e externos. Internos são os que pertencem a `scan.internalDomains` (ou `--internal-domain`, repetível) e nomes sem ponto, como os do docker-compose.
+- `--create-stubs` cria serviços `external` só para hosts externos sem dono. Hosts internos nunca viram stub: adicione-os a `hosts` do serviço que os atende.
 - URLs completas, credenciais e arquivos `.env` reais nunca são gravados nem lidos — só host e evidência `arquivo:linha`.
 
 ### Skills para agentes de IA
@@ -105,7 +110,7 @@ A pasta [`skills/`](skills) traz instruções prontas para agentes de código:
 | --- | --- |
 | `apimap validate [dir] [--strict]` | Valida schema, ids duplicados, tipos desconhecidos, alvos sem cadastro e serviços sem owner. `--strict` falha em warnings. |
 | `apimap build [dir] [-o saida]` | Valida e gera o visualizador + `graph.json` em `saida` (padrão `<dir>/dist`). |
-| `apimap scan [dir] [-s glob] [--dry-run] [--create-stubs]` | Descobre serviços e dependências nos repositórios e atualiza o catálogo. |
+| `apimap scan [dir] [-s glob] [-i domínio] [--dry-run] [--create-stubs]` | Descobre serviços e dependências nos repositórios e atualiza o catálogo. |
 | `apimap link <origem> <alvo> [-d dir] [-p protocolo] [-c confiança] [-e arquivo:linha] [-n nota]` | Adiciona ou atualiza uma dependência preservando comentários (usado pelas skills). |
 
 ## Desenvolvimento

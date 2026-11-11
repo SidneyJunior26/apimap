@@ -58,6 +58,20 @@
             "additionalProperties": false
           },
           "default": {}
+        },
+        "scan": {
+          "type": "object",
+          "properties": {
+            "internalDomains": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            }
+          },
+          "additionalProperties": false,
+          "default": {}
         }
       },
       "additionalProperties": false
