@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: catalog-db
+name: Catalog DB
+kind: database
+group: commerce
+owner: team-catalog
+repo: github.com/acme/catalog-db
+tech: [mongodb]

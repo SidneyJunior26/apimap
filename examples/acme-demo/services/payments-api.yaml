@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: payments-api
+name: Payments API
+kind: core
+group: payments
+owner: team-payments
+repo: github.com/acme/payments-api
+description: "Charges, captures and refunds."
+tech: [dotnet8]
+hosts:
+  - payments.acme.internal
+dependsOn:
+  - target: paygate
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: appsettings.json, line: 16 }]
+  - target: riskshield
+    confidence: inferred
+    origin: agent
+    evidence: [{ file: src/Fraud/RiskClient.cs, line: 21 }]
+  - target: payments-events
+    protocol: kafka
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: appsettings.json, line: 25 }]
+  - target: legacy-billing-ws
+    protocol: soap
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: Connected Services/Billing/Reference.cs, line: 1 }]

@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: shipfast
+name: ShipFast
+kind: external
+group: partners
+owner: team-logistics
+repo: github.com/acme/shipfast
+description: Carrier (fictional).
+hosts:
+  - api.shipfast.example

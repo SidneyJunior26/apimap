@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: tracking-ws
+name: Live Tracking
+kind: websocket
+group: logistics
+owner: team-logistics
+repo: github.com/acme/tracking-ws
+description: Real-time delivery tracking for customers.
+tech: [node, socket.io]
+hosts:
+  - tracking.acme.example
+dependsOn:
+  - target: shipping-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/server.ts, line: 14 }]

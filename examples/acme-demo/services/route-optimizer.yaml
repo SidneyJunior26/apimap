@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: route-optimizer
+name: Route Optimizer
+kind: worker
+group: logistics
+owner: team-logistics
+repo: github.com/acme/route-optimizer
+description: Nightly delivery route planning.
+tech: [python]
+dependsOn:
+  - target: maproute
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: optimizer/config.py, line: 6 }]
+  - target: orders-events
+    protocol: amqp
+    confidence: inferred
+    origin: agent

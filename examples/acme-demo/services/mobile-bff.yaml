@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: mobile-bff
+name: Mobile BFF
+kind: bff
+group: commerce
+owner: team-mobile
+repo: github.com/acme/mobile-bff
+description: Backend for the mobile app.
+tech: [dotnet8]
+hosts:
+  - mobile-bff.acme.internal
+dependsOn:
+  - target: catalog-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/Clients/CatalogClient.cs, line: 24 }]
+  - target: orders-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/Clients/OrdersClient.cs, line: 31 }]
+  - target: identity-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/Clients/IdentityClient.cs, line: 18 }]
+  - target: autorizacao-core
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: appsettings.json, line: 14 }]
+  - target: tracking-ws
+    protocol: ws
+    confidence: inferred
+    origin: agent
+    evidence: [{ file: src/Hubs/TrackingProxy.cs, line: 40 }]

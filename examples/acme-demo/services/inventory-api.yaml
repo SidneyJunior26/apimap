@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: inventory-api
+name: Inventory API
+kind: core
+group: logistics
+owner: team-logistics
+repo: github.com/acme/inventory-api
+description: Stock levels per warehouse.
+tech: [go]
+hosts:
+  - inventory.acme.internal
+dependsOn:
+  - target: inventory-db
+    protocol: sql
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: config.yaml, line: 4 }]
+  - target: warehouse-ftp
+    protocol: ftp
+    confidence: inferred
+    origin: agent
+    evidence: [{ file: internal/sync/ftp.go, line: 17 }]

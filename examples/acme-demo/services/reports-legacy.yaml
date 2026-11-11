@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: reports-legacy
+name: Relatórios Legado
+kind: legacy
+group: platform
+owner: team-backoffice
+repo: github.com/acme/reports-legacy
+description: Old reporting tool still used by finance.
+tech: [vb6]
+dependsOn:
+  - target: orders-db
+    protocol: sql
+    confidence: manual
+    origin: manual
+  - target: billing-db
+    protocol: sql
+    confidence: manual
+    origin: manual

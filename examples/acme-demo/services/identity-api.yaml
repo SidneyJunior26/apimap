@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: identity-api
+name: Identity API
+kind: core
+group: identity
+owner: team-identity
+repo: github.com/acme/identity-api
+description: "Users, sessions and tokens."
+tech: [dotnet8]
+hosts:
+  - identity.acme.internal
+dependsOn:
+  - target: users-db
+    protocol: sql
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: appsettings.json, line: 5 }]
+  - target: skyid-sso
+    confidence: inferred
+    origin: agent
+    evidence: [{ file: src/Auth/SkyIdHandler.cs, line: 52 }]
+  - target: audit-logs
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: appsettings.json, line: 20 }]

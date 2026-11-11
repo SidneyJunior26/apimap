@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: customers-db
+name: Customers DB
+kind: database
+group: commerce
+owner: team-customers
+repo: github.com/acme/customers-db
+tech: [postgres]

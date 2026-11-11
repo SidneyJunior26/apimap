@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: refunds-worker
+name: Refunds Worker
+kind: worker
+group: payments
+owner: team-payments
+repo: github.com/acme/refunds-worker
+description: Processes refund requests asynchronously.
+tech: [dotnet8]
+dependsOn:
+  - target: payments-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: appsettings.json, line: 8 }]
+  - target: notifications-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: appsettings.json, line: 9 }]

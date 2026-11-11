@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: pricing-grpc
+name: Pricing Engine
+kind: grpc
+group: commerce
+owner: team-pricing
+repo: github.com/acme/pricing-grpc
+description: "Prices, promotions and coupons."
+tech: [rust]
+hosts:
+  - "pricing.acme.internal:50051"
+dependsOn:
+  - target: catalog-api
+    confidence: inferred
+    origin: agent

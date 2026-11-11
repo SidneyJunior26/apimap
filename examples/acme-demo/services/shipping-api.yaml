@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: shipping-api
+name: Shipping API
+kind: core
+group: logistics
+owner: team-logistics
+repo: github.com/acme/shipping-api
+description: "Labels, carriers and delivery status."
+tech: [go]
+hosts:
+  - shipping.acme.internal
+dependsOn:
+  - target: shipfast
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: config.yaml, line: 9 }]
+  - target: orders-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: internal/callbacks/orders.go, line: 25 }]
