@@ -24,8 +24,8 @@ interface Props {
 
 const FALLBACK_GROUP_COLOR = '#64748b';
 const THEME = {
-  nebula: { dim: 'rgba(100, 116, 139, 0.18)', label: '#c9d2e3', glow: 0.16 },
-  paper: { dim: 'rgba(100, 116, 139, 0.22)', label: '#2a3242', glow: 0.08 },
+  nebula: { dim: 'rgba(100, 116, 139, 0.18)', label: '#c9d2e3', glow: 0.3 },
+  paper: { dim: 'rgba(100, 116, 139, 0.22)', label: '#2a3242', glow: 0.14 },
 } as const;
 
 export function prefersReducedMotion(): boolean {

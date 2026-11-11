@@ -63,9 +63,9 @@ void main(void) {
   float border = u_correctionRatio * 2.0;
   float core = 1.0 - smoothstep(v_radius - border, v_radius, d);
   float h = clamp((d - v_radius) / (v_halo - v_radius), 0.0, 1.0);
-  float glow = pow(1.0 - h, 3.0) * ${intensity.toFixed(2)};
+  float glow = pow(1.0 - h, 2.6) * ${intensity.toFixed(2)};
   // Brighter center gives the node a lit, glassy look.
-  vec3 lit = mix(v_color.rgb, vec3(1.0), 0.12 * (1.0 - smoothstep(0.0, v_radius * 0.9, d)));
+  vec3 lit = mix(v_color.rgb, vec3(1.0), 0.28 * (1.0 - smoothstep(0.0, v_radius * 0.9, d)));
   vec3 rgb = mix(v_color.rgb, lit, core);
   float a = max(core, glow) * v_color.a;
   gl_FragColor = vec4(rgb * a, a);
