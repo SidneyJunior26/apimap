@@ -33,8 +33,10 @@ const endId = (end: Node3D | string) => (typeof end === 'string' ? end : end.id)
 const linkLit = (lit: Set<string> | null, l: LiveLink) => !lit || (lit.has(endId(l.source)) && lit.has(endId(l.target)));
 
 const DIM = { nebula: 'rgba(100,116,139,0.25)', paper: 'rgba(148,163,184,0.35)' } as const;
-/** Bloom glow. Off by default: it lifts the whole background and reads as neon rather than professional. */
-const BLOOM = { nebula: 0, paper: 0 } as const;
+/** Soft halo around each node. Drawn as a sprite instead of bloom post-processing, which flattens the transparent background. */
+const HALO = { nebula: 0.5, paper: 0.18 } as const;
+const HALO_SCALE = 5;
+const DIM_HALO = 0.1;
 
 export function supportsWebGL(): boolean {
   try {
@@ -58,6 +60,7 @@ export function Graph3D({ graph, visible, query, selection, theme, controllerRef
   const fgRef = useRef<ForceGraph | null>(null);
   const hoveredRef = useRef<string | null>(null);
   const nodeCache = useRef(new Map<string, Node3D>());
+  const halos = useRef(new Map<string, { material: { opacity: number } }>());
   const propsRef = useRef({ graph, visible, query, selection, onSelect });
   propsRef.current = { graph, visible, query, selection, onSelect };
 
@@ -75,6 +78,7 @@ export function Graph3D({ graph, visible, query, selection, theme, controllerRef
     const lit = highlight();
     const dim = DIM[theme];
     fg.nodeColor((n: Node3D) => (lit && !lit.has(n.id) ? dim : n.color));
+    for (const [id, halo] of halos.current) halo.material.opacity = lit && !lit.has(id) ? DIM_HALO : 1;
     fg.linkColor((l: LiveLink) => (linkLit(lit, l) ? l.color : dim));
     fg.linkDirectionalParticles((l: LiveLink) => (linkLit(lit, l) ? l.particles : 0));
   };
@@ -106,33 +110,63 @@ export function Graph3D({ graph, visible, query, selection, theme, controllerRef
 
     void (async () => {
       try {
-        const [{ default: ForceGraph3D }, THREE, { UnrealBloomPass }] = await Promise.all([
-          import('3d-force-graph'),
-          import('three'),
-          import('three/examples/jsm/postprocessing/UnrealBloomPass.js'),
-        ]);
+        const [{ default: ForceGraph3D }, THREE] = await Promise.all([import('3d-force-graph'), import('three')]);
         if (disposed) return;
         const fg = new ForceGraph3D(container, {
           controlType: 'orbit',
-          rendererConfig: { antialias: true, preserveDrawingBuffer: true },
+          rendererConfig: { antialias: true, alpha: true, preserveDrawingBuffer: true },
         }) as unknown as ForceGraph;
         fgRef.current = fg;
         const reduced = prefersReducedMotion();
+
+        // One soft radial texture per node color, shared by every halo of that color.
+        const textures = new Map<string, InstanceType<typeof THREE.CanvasTexture>>();
+        const haloTexture = (color: string) => {
+          let t = textures.get(color);
+          if (!t) {
+            const c = document.createElement('canvas');
+            c.width = c.height = 128;
+            const ctx = c.getContext('2d')!;
+            const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+            const base = new THREE.Color(color);
+            const rgb = `${Math.round(base.r * 255)}, ${Math.round(base.g * 255)}, ${Math.round(base.b * 255)}`;
+            grad.addColorStop(0, `rgba(${rgb}, ${HALO[theme]})`);
+            grad.addColorStop(0.35, `rgba(${rgb}, ${HALO[theme] * 0.35})`);
+            grad.addColorStop(1, `rgba(${rgb}, 0)`);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 128, 128);
+            t = new THREE.CanvasTexture(c);
+            textures.set(color, t);
+          }
+          return t;
+        };
+        const haloFor = (n: Node3D) => {
+          const material = new THREE.SpriteMaterial({ map: haloTexture(n.color), transparent: true, depthWrite: false });
+          const sprite = new THREE.Sprite(material);
+          // Node radius in 3d-force-graph is cbrt(val) * nodeRelSize (4).
+          const size = Math.cbrt(n.val) * 4 * HALO_SCALE;
+          sprite.scale.set(size, size, 1);
+          halos.current.set(n.id, { material });
+          return sprite;
+        };
+
         fg.width(container.clientWidth)
           .height(container.clientHeight)
-          .backgroundColor(themeBackground(theme))
+          .backgroundColor('rgba(0,0,0,0)') // transparent: the Nebula / Paper page background shows through, as in 2D
           .showNavInfo(false)
           .nodeId('id')
           .nodeVal('val')
-          .nodeOpacity(0.9)
+          .nodeOpacity(0.95)
+          .nodeThreeObject(haloFor)
+          .nodeThreeObjectExtend(true)
           .nodeResolution(16)
           .nodeLabel((n: Node3D) => labelElement(n.label, theme))
           .linkWidth((l: Link3D) => (l.confidence === 'confirmed' ? 1.2 : 0.5))
-          .linkOpacity(theme === 'paper' ? 0.5 : 0.3)
+          .linkOpacity(theme === 'paper' ? 0.5 : 0.38)
           .linkCurvature(0.12)
           .linkDirectionalArrowLength(3.5)
           .linkDirectionalArrowRelPos(1)
-          .linkDirectionalParticleWidth(1.1)
+          .linkDirectionalParticleWidth(1.4)
           .linkDirectionalParticleSpeed(0.006)
           .onNodeHover((n: Node3D | null) => {
             hoveredRef.current = n?.id ?? null;
@@ -141,11 +175,6 @@ export function Graph3D({ graph, visible, query, selection, theme, controllerRef
           })
           .onNodeClick((n: Node3D) => propsRef.current.onSelect(n.id))
           .onBackgroundClick(() => propsRef.current.onSelect(null));
-
-        if (BLOOM[theme] > 0) {
-          const size = new THREE.Vector2(container.clientWidth, container.clientHeight);
-          fg.postProcessingComposer().addPass(new UnrealBloomPass(size, BLOOM[theme], 0.35, 0.35));
-        }
 
         // Frame the whole graph once the layout settles the first time.
         let framed = false;
@@ -179,6 +208,7 @@ export function Graph3D({ graph, visible, query, selection, theme, controllerRef
       disposed = true;
       resize?.disconnect();
       controllerRef.current = null;
+      halos.current.clear();
       fgRef.current?._destructor();
       fgRef.current = null;
       container.replaceChildren();

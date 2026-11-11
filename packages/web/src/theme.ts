@@ -4,7 +4,7 @@ export const NEBULA_BG = '#05080f';
 export const PAPER_BG = '#f6f4ef';
 /** Minimum contrast for kind colors drawn on the light background. */
 const MIN_CONTRAST = 3;
-const DARK_MUTE = 0.22;
+const DARK_MUTE = 0.1;
 
 function parseHex(hex: string): [number, number, number] | null {
   const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);

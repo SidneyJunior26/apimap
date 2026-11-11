@@ -37,8 +37,9 @@ function particleSprite(color: string): HTMLCanvasElement {
   sprite.width = sprite.height = 24;
   const ctx = sprite.getContext('2d')!;
   const grad = ctx.createRadialGradient(12, 12, 0, 12, 12, 12);
-  grad.addColorStop(0, rgba(color, 0.95));
-  grad.addColorStop(0.35, rgba(color, 0.6));
+  grad.addColorStop(0, 'rgba(255,255,255,0.9)');
+  grad.addColorStop(0.25, rgba(color, 0.9));
+  grad.addColorStop(1, rgba(color, 0));
   grad.addColorStop(1, rgba(color, 0));
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 24, 24);
@@ -139,7 +140,7 @@ export class LinksLayer {
       if (!meta || !a || !b) return;
       const lit = highlight ? highlight.has(source) && highlight.has(target) : null;
       const light = this.state.light;
-      const alpha = lit === null ? (light ? 0.45 : 0.26) : lit ? 0.8 : light ? 0.08 : 0.04;
+      const alpha = lit === null ? (light ? 0.5 : 0.3) : lit ? 0.85 : light ? 0.08 : 0.04;
 
       ctx.strokeStyle = rgba(meta.color, alpha);
       ctx.fillStyle = rgba(meta.color, alpha);
@@ -183,18 +184,19 @@ export class LinksLayer {
         const count = meta.confidence === 'confirmed' ? 2 : 1;
         for (let i = 0; i < count; i++) {
           const t = ((time / 1000) * (PARTICLE_SPEED / len) + meta.phase + i / count) % 1;
-          particles.push({ p: quad(a, c, end, t), color: meta.color, alpha: lit ? 0.85 : 0.5 });
+          particles.push({ p: quad(a, c, end, t), color: meta.color, alpha: lit ? 1 : 0.7 });
         }
       }
     });
 
     ctx.setLineDash([]);
-    // Normal blending: additive light made the map look like neon.
+    ctx.globalCompositeOperation = this.state.light ? 'source-over' : 'lighter';
     for (const { p, color, alpha } of particles) {
       ctx.globalAlpha = alpha;
-      ctx.drawImage(particleSprite(color), p.x - 4, p.y - 4, 8, 8);
+      ctx.drawImage(particleSprite(color), p.x - 5, p.y - 5, 10, 10);
     }
     ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
   }
 
   private drawGroups(graph: ApiGraph, visibleNodes: Set<string>, highlight: Set<string> | null) {
@@ -212,7 +214,7 @@ export class LinksLayer {
       const cx = points.reduce((s, p) => s + p.x, 0) / points.length;
       const cy = points.reduce((s, p) => s + p.y, 0) / points.length;
       const r = Math.max(...points.map((p) => Math.hypot(p.x - cx, p.y - cy))) + 48;
-      const strength = (highlight ? 0.02 : 0.05) * (this.state.light ? 1.4 : 1);
+      const strength = (highlight ? 0.025 : 0.07) * (this.state.light ? 1.4 : 1);
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
       grad.addColorStop(0, rgba(color, strength));
       grad.addColorStop(0.7, rgba(color, strength * 0.6));
