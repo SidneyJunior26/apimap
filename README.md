@@ -318,7 +318,7 @@ edit:
 
 ## Mermaid e diferenças entre versões
 
-`apimap export --format mermaid` gera um diagrama que o GitHub, o GitLab e várias wikis desenham direto no Markdown. O exemplo abaixo foi gerado do catálogo de demonstração, só com os vizinhos diretos de Orders API:
+`apimap export --format mermaid` gera um diagrama que o GitHub, o GitLab e várias wikis desenham direto no Markdown. O exemplo abaixo foi gerado do catálogo de demonstração, só com os vizinhos diretos de Orders API. Aqui ele aparece sem as linhas `classDef`, que o comando também escreve para colorir cada tipo:
 
 ```mermaid
 flowchart LR
