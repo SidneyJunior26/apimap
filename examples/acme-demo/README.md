@@ -1,10 +1,10 @@
-# Acme demo catalog
+# Catálogo de demonstração Acme
 
-Fictional company used to showcase apimap. All names, hosts and vendors are invented.
+Empresa fictícia usada para demonstrar o apimap. Todos os nomes, hosts e fornecedores são inventados.
 
-- 49 services across 6 groups, every built-in kind plus a custom `delphi` kind
-- Mix of `confirmed`, `inferred` and `manual` dependencies
-- One intentional ghost node (`tax-authority-api`) and an `orders-api` ⇄ `shipping-api` cycle
+- 49 serviços em 6 grupos, todos os tipos nativos e um tipo customizado `delphi`
+- Mistura de dependências `confirmed`, `inferred` e `manual`
+- Um nó fantasma proposital (`tax-authority-api`) e um ciclo `orders-api` ⇄ `shipping-api`
 
 ```bash
 pnpm apimap validate examples/acme-demo

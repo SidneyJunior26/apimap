@@ -150,7 +150,7 @@ export async function runScan(dir: string, opts: ScanOptions): Promise<number> {
     if (!opts.dryRun && (await writeServiceFile(path.join(root, `services/${sid}.yaml`), stub))) written++;
   }
 
-  console.log(`scanned ${repos.length} repositories${opts.dryRun ? ' (dry run, nothing written)' : ''}`);
+  console.log(`scanned ${repos.length} repositor${repos.length === 1 ? 'y' : 'ies'}${opts.dryRun ? ' (dry run, nothing written)' : ''}`);
   console.log(lines.join('\n'));
   if (unresolved.length) {
     console.log(`\nunresolved hosts (add them to a service's "hosts" or use --create-stubs):`);
