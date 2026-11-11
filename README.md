@@ -151,15 +151,65 @@ Algumas regras do editor:
 - Se um arquivo mudar por fora (no editor de texto ou num `apimap scan`), o navegador atualiza sozinho e os nós que já existiam ficam no lugar.
 - O servidor só aceita conexões da própria máquina e recusa pedidos vindos de outros sites.
 
+## Propor mudanças pelo site publicado
+
+Quem abre o site gerado pelo `apimap build` não precisa clonar o repositório para corrigir o mapa. Com o catálogo hospedado no GitHub, aparecem os botões "Propose service", "Propose edit" e "Propose removal". O formulário é o mesmo do editor local; no final, o site abre o GitHub:
+
+- Serviço novo: a página de criar arquivo já vem com o YAML preenchido.
+- Edição: o YAML novo vai para a área de transferência e o GitHub abre o editor do arquivo, onde é só colar.
+- Exclusão: abre a página de excluir o arquivo.
+
+Em todos os casos é o GitHub que cria a branch (ou o fork, para quem não tem permissão de escrita) e o pull request. O site não pede login nem token.
+
+O `apimap build` descobre o repositório pelo remote `origin` quando ele está no GitHub. Para escolher outro repositório, ou desligar os botões, use o `apimap.config.yaml`:
+
+```yaml
+edit:
+  repo: minha-empresa/mapa-de-apis
+  branch: main
+  path: catalogo        # pasta do catálogo dentro do repositório
+# edit: false          # desliga os botões
+```
+
+Ao editar pelo site, comentários do arquivo YAML original não são levados para a proposta, porque o site publicado só conhece o `graph.json`.
+
+## Repositórios git como fonte
+
+Além de pastas locais, `sources` aceita URLs git. O scan faz um clone raso de cada repositório em `.apimap/repos/` (pasta ignorada pelo git) usando as credenciais git da máquina, como o SSH ou o gerenciador de credenciais:
+
+```yaml
+sources:
+  - ../repos/*
+  - git@github.com:minha-empresa/orders-api.git
+  - https://github.com/minha-empresa/payments-api.git
+```
+
+Nas execuções seguintes ele atualiza o clone. Com `--no-fetch`, usa a cópia que já está no disco. Serviços que vieram de um repositório git ganham o campo `repo` preenchido, sem credenciais. URLs que tentam passar opções para o git ou usar o transporte `ext::` são recusadas.
+
+## Mermaid e diferenças entre versões
+
+`apimap export --format mermaid` gera um diagrama Mermaid do catálogo, com os grupos como subgráficos e o estilo da seta indicando a confiança da ligação. O GitHub, o GitLab e várias wikis desenham esse formato direto no Markdown. No site, o botão "Mermaid" copia o diagrama só dos serviços visíveis com os filtros atuais.
+
+`apimap diff` compara o catálogo atual com uma referência git (por padrão `origin/main`) e lista serviços e ligações que entraram, saíram ou mudaram. Com `--format markdown`, a saída serve de comentário em pull request. Um exemplo de passo no GitHub Actions:
+
+```yaml
+- run: npx apimap diff catalogo --base origin/${{ github.base_ref }} --format markdown > diff.md
+- run: gh pr comment ${{ github.event.pull_request.number }} --body-file diff.md
+  env:
+    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
 ## CLI
 
 | Comando | O que faz |
 | --- | --- |
 | `apimap validate [dir] [--strict]` | Confere o schema, ids duplicados, tipos desconhecidos, alvos sem cadastro e serviços sem owner. Com `--strict`, avisos também fazem o comando falhar. |
 | `apimap build [dir] [-o saida]` | Valida o catálogo e gera o visualizador com o `graph.json` em `saida` (por padrão, `<dir>/dist`). |
-| `apimap scan [dir] [-s glob] [-i domínio] [--dry-run] [--create-stubs]` | Lê os repositórios e atualiza serviços e dependências no catálogo. |
+| `apimap scan [dir] [-s fonte] [-i domínio] [--dry-run] [--create-stubs] [--no-fetch]` | Lê os repositórios (pastas ou URLs git) e atualiza serviços e dependências no catálogo. |
 | `apimap link <origem> <alvo> [-d dir] [-p protocolo] [-c confiança] [-e arquivo:linha] [-n nota]` | Adiciona ou atualiza uma dependência sem mexer nos comentários do arquivo. As skills usam este comando. |
 | `apimap serve [dir] [-p porta] [--open]` | Abre o editor local para criar, editar e excluir serviços (porta padrão 4321, só para a própria máquina). |
+| `apimap export [dir] [-f mermaid] [-o arquivo] [--direction LR\|TB]` | Exporta o catálogo como diagrama Mermaid. |
+| `apimap diff [dir] [-b ref] [-f text\|markdown]` | Mostra o que mudou desde uma referência git. |
 
 ## Desenvolvimento
 
@@ -178,7 +228,7 @@ O repositório tem quatro pacotes: `@apimap/core` (schema, leitura, validação,
 - M2, concluída: `apimap scan` (configuração, OpenAPI, .NET, Node e docker-compose) e skills para agentes de IA.
 - M3, concluída: `apimap serve`, com um editor local para criar, editar e excluir serviços.
 - M4, concluída: modo 3D para apresentações, tema claro e exportação em PNG.
-- M5: botão "Propor mudança" no site publicado, que abre um pull request, catálogos federados e exportação para Mermaid.
+- M5, concluída: propostas de mudança por pull request a partir do site publicado, repositórios git como fonte, exportação para Mermaid e `apimap diff`.
 
 ## Licença
 
