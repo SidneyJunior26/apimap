@@ -4,6 +4,7 @@ export const NEBULA_BG = '#05080f';
 export const PAPER_BG = '#f6f4ef';
 /** Minimum contrast for kind colors drawn on the light background. */
 const MIN_CONTRAST = 3;
+const DARK_MUTE = 0.22;
 
 function parseHex(hex: string): [number, number, number] | null {
   const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
@@ -28,9 +29,13 @@ export function contrastRatio(a: string, b: string): number {
 
 /** Kind color adjusted for the theme: on paper, darkened until it reads against the light background. */
 export function themeColor(color: string, theme: Theme): string {
-  if (theme !== 'paper') return color;
   const rgb = parseHex(color);
   if (!rgb) return color;
+  if (theme !== 'paper') {
+    // Dark theme: pull colors 22% toward slate so the map reads calm instead of neon.
+    const slate = [100, 116, 139];
+    return toHex(rgb.map((v, i) => v + (slate[i]! - v) * DARK_MUTE));
+  }
   let current = rgb;
   for (let step = 0; step < 20 && contrastRatio(toHex(current), PAPER_BG) < MIN_CONTRAST; step++) {
     current = current.map((v) => v * 0.9) as [number, number, number];

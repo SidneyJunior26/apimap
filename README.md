@@ -27,7 +27,7 @@ No visualizador, cada tipo de serviço tem uma cor. Partículas andam pelas ares
 
 ### 3D, tema claro e imagem
 
-A barra no canto inferior esquerdo tem três botões além do zoom. "3D" troca para uma visão em três dimensões, pensada para apresentações: os serviços viram esferas com brilho, a câmera gira com o mouse e voa até o serviço selecionado. Filtros, busca e upstream/downstream continuam valendo. O código do 3D só é baixado quando alguém abre esse modo.
+A barra no canto inferior esquerdo tem três botões além do zoom. "3D" troca para uma visão em três dimensões, pensada para apresentações: os serviços viram esferas, a câmera gira com o mouse e voa até o serviço selecionado. Filtros, busca e upstream/downstream continuam valendo. O código do 3D só é baixado quando alguém abre esse modo.
 
 "Light" e "Dark" alternam entre o tema escuro e um tema claro em tom de papel, em que as cores dos tipos ficam mais escuras para manter o contraste. "PNG" baixa a visão atual como imagem, com o fundo do tema e o nome do catálogo no rodapé.
 

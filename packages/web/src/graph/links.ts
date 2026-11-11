@@ -18,7 +18,6 @@ interface Point { x: number; y: number }
 const PARTICLE_SPEED = 70; // px per second
 const MAX_PARTICLE_EDGES = 3000;
 const CURVATURE = 0.14;
-const MIN_LABELED_GROUP_RADIUS = 110; // px on screen
 
 function hexToRgb(color: string): [number, number, number] {
   const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(color);
@@ -38,8 +37,8 @@ function particleSprite(color: string): HTMLCanvasElement {
   sprite.width = sprite.height = 24;
   const ctx = sprite.getContext('2d')!;
   const grad = ctx.createRadialGradient(12, 12, 0, 12, 12, 12);
-  grad.addColorStop(0, 'rgba(255,255,255,1)');
-  grad.addColorStop(0.25, rgba(color, 0.95));
+  grad.addColorStop(0, rgba(color, 0.95));
+  grad.addColorStop(0.35, rgba(color, 0.6));
   grad.addColorStop(1, rgba(color, 0));
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 24, 24);
@@ -52,7 +51,7 @@ function quad(p0: Point, c: Point, p1: Point, t: number): Point {
   return { x: u * u * p0.x + 2 * u * t * c.x + t * t * p1.x, y: u * u * p0.y + 2 * u * t * c.y + t * t * p1.y };
 }
 
-/** Canvas layer under the nodes: group halos, curved links (solid/dashed) with arrows, and flowing particles. */
+/** Canvas layer under the nodes: unlabeled group halos, curved links (solid/dashed) with arrows, and flowing particles. */
 export class LinksLayer {
   private ctx: CanvasRenderingContext2D;
   private frame = 0;
@@ -140,7 +139,7 @@ export class LinksLayer {
       if (!meta || !a || !b) return;
       const lit = highlight ? highlight.has(source) && highlight.has(target) : null;
       const light = this.state.light;
-      const alpha = lit === null ? (light ? 0.5 : 0.32) : lit ? 0.9 : light ? 0.08 : 0.04;
+      const alpha = lit === null ? (light ? 0.45 : 0.26) : lit ? 0.8 : light ? 0.08 : 0.04;
 
       ctx.strokeStyle = rgba(meta.color, alpha);
       ctx.fillStyle = rgba(meta.color, alpha);
@@ -184,19 +183,18 @@ export class LinksLayer {
         const count = meta.confidence === 'confirmed' ? 2 : 1;
         for (let i = 0; i < count; i++) {
           const t = ((time / 1000) * (PARTICLE_SPEED / len) + meta.phase + i / count) % 1;
-          particles.push({ p: quad(a, c, end, t), color: meta.color, alpha: lit ? 1 : 0.7 });
+          particles.push({ p: quad(a, c, end, t), color: meta.color, alpha: lit ? 0.85 : 0.5 });
         }
       }
     });
 
     ctx.setLineDash([]);
-    ctx.globalCompositeOperation = this.state.light ? 'source-over' : 'lighter';
+    // Normal blending: additive light made the map look like neon.
     for (const { p, color, alpha } of particles) {
       ctx.globalAlpha = alpha;
-      ctx.drawImage(particleSprite(color), p.x - 6, p.y - 6, 12, 12);
+      ctx.drawImage(particleSprite(color), p.x - 4, p.y - 4, 8, 8);
     }
     ctx.globalAlpha = 1;
-    ctx.globalCompositeOperation = 'source-over';
   }
 
   private drawGroups(graph: ApiGraph, visibleNodes: Set<string>, highlight: Set<string> | null) {
@@ -207,7 +205,6 @@ export class LinksLayer {
       if (p) buckets.set(attrs.group, [...(buckets.get(attrs.group) ?? []), p]);
     });
     const ctx = this.ctx;
-    const placed: Array<{ x: number; y: number; w: number; h: number }> = [];
     for (const [group, points] of buckets) {
       const info = this.groups[group];
       if (!info || points.length < 2) continue;
@@ -215,7 +212,7 @@ export class LinksLayer {
       const cx = points.reduce((s, p) => s + p.x, 0) / points.length;
       const cy = points.reduce((s, p) => s + p.y, 0) / points.length;
       const r = Math.max(...points.map((p) => Math.hypot(p.x - cx, p.y - cy))) + 48;
-      const strength = (highlight ? 0.03 : 0.09) * (this.state.light ? 1.4 : 1);
+      const strength = (highlight ? 0.02 : 0.05) * (this.state.light ? 1.4 : 1);
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
       grad.addColorStop(0, rgba(color, strength));
       grad.addColorStop(0.7, rgba(color, strength * 0.6));
@@ -224,16 +221,6 @@ export class LinksLayer {
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.fill();
-      // Far out, groups overlap: skip names on tiny areas or on top of a name already drawn.
-      if (r < MIN_LABELED_GROUP_RADIUS) continue;
-      ctx.font = '600 11px "Inter Variable", system-ui, sans-serif';
-      const text = info.label.toUpperCase();
-      const box = { x: cx - ctx.measureText(text).width / 2 - 4, y: cy - r + 16, w: ctx.measureText(text).width + 8, h: 16 };
-      if (placed.some((b) => box.x < b.x + b.w && b.x < box.x + box.w && box.y < b.y + b.h && b.y < box.y + box.h)) continue;
-      placed.push(box);
-      ctx.textAlign = 'center';
-      ctx.fillStyle = rgba(color, highlight ? 0.25 : this.state.light ? 0.75 : 0.55);
-      ctx.fillText(text, cx, cy - r + 28);
     }
   }
 }

@@ -3,8 +3,10 @@ import { DEFAULT_KINDS } from '@apimap/core';
 import { contrastRatio, PAPER_BG, themeColor } from '../src/theme.js';
 
 describe('themeColor', () => {
-  it('keeps colors on the dark theme', () => {
-    expect(themeColor('#facc15', 'nebula')).toBe('#facc15');
+  it('mutes colors on the dark theme', () => {
+    const c = themeColor('#facc15', 'nebula');
+    expect(c).not.toBe('#facc15');
+    expect(contrastRatio(c, '#05080f')).toBeGreaterThanOrEqual(4.5);
   });
 
   it('darkens every default kind to at least 3:1 on paper', () => {
