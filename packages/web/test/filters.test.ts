@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyFilters, countByKind, initialFilters, normalize } from '../src/filters.js';
+import { applyFilters, countByKind, initialFilters, normalize, searchMatches } from '../src/filters.js';
 import { edge, graph, node } from './fixture.js';
 
 const g = graph(
@@ -24,15 +24,8 @@ describe('applyFilters', () => {
     expect(r.edgeIds.size).toBe(2);
   });
 
-  it('search is accent and case insensitive', () => {
-    const r = applyFilters(g, { ...initialFilters(g), query: 'AUTORIZACAO' });
-    expect([...r.nodeIds]).toEqual(['autorizacao-core']);
-  });
-
-  it('search matches id, owner, tags and hosts', () => {
-    for (const q of ['autorizacao-core', 'team-identity', 'pii', 'authz.acme']) {
-      expect([...applyFilters(g, { ...initialFilters(g), query: q }).nodeIds]).toEqual(['autorizacao-core']);
-    }
+  it('query does not hide nodes', () => {
+    expect(applyFilters(g, { ...initialFilters(g), query: 'paygate' }).nodeIds.size).toBe(3);
   });
 
   it('kind filter hides nodes and their edges', () => {
@@ -63,6 +56,30 @@ describe('applyFilters', () => {
     const r = applyFilters(e, initialFilters(e));
     expect(r.nodeIds.size).toBe(0);
     expect(r.edgeIds.size).toBe(0);
+  });
+});
+
+describe('searchMatches', () => {
+  const all = () => applyFilters(g, initialFilters(g));
+
+  it('returns null for an empty query', () => {
+    expect(searchMatches(g, '  ', all())).toBeNull();
+  });
+
+  it('is accent and case insensitive', () => {
+    expect([...searchMatches(g, 'AUTORIZACAO', all())!]).toEqual(['autorizacao-core']);
+  });
+
+  it('matches id, owner, tags and hosts', () => {
+    for (const q of ['autorizacao-core', 'team-identity', 'pii', 'authz.acme']) {
+      expect([...searchMatches(g, q, all())!]).toEqual(['autorizacao-core']);
+    }
+  });
+
+  it('ignores nodes hidden by filters', () => {
+    const f = initialFilters(g);
+    f.kinds.delete('external');
+    expect(searchMatches(g, 'paygate', applyFilters(g, f))!.size).toBe(0);
   });
 });
 

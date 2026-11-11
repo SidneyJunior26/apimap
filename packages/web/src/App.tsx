@@ -2,6 +2,8 @@ import type { GraphJson } from '@apimap/core';
 import { useEffect, useMemo, useState } from 'react';
 import { loadGraph } from './data';
 import { applyFilters, initialFilters, type FilterState } from './filters';
+import { Nebula } from './background/Nebula';
+import { GraphCanvas } from './graph/GraphCanvas';
 import { Sidebar } from './panel/Sidebar';
 import { initialSelection, type Selection } from './state';
 
@@ -42,6 +44,7 @@ export function App() {
 
   return (
     <div className="app">
+      <Nebula />
       <main className="stage" aria-label="Dependency graph">
         {graph.nodes.length === 0 ? (
           <div className="state" role="status">
@@ -51,7 +54,14 @@ export function App() {
             </p>
           </div>
         ) : (
-          <div className="canvas" data-testid="graph-canvas" />
+          <GraphCanvas
+            graph={graph}
+            visible={visible}
+            query={filters.query}
+            selection={selection}
+            onSelect={(id) => setSelection({ ...selection, selectedId: id, focusMode: 'none' })}
+            onResetFilters={() => setFilters(initialFilters(graph))}
+          />
         )}
       </main>
       <Sidebar

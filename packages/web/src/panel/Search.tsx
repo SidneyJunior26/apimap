@@ -1,5 +1,5 @@
 import type { GraphJson } from '@apimap/core';
-import type { FilterState, Visible } from '../filters';
+import { searchMatches, type FilterState, type Visible } from '../filters';
 
 interface Props {
   graph: GraphJson;
@@ -12,7 +12,8 @@ interface Props {
 const MAX_RESULTS = 8;
 
 export function Search({ graph, filters, visible, onQueryChange, onSelect }: Props) {
-  const results = filters.query.trim() ? graph.nodes.filter((n) => visible.nodeIds.has(n.id)) : [];
+  const matches = searchMatches(graph, filters.query, visible);
+  const results = matches ? graph.nodes.filter((n) => matches.has(n.id)) : [];
 
   return (
     <section className="section">

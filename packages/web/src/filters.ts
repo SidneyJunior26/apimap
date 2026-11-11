@@ -40,14 +40,19 @@ export function matchesQuery(n: GraphNode, query: string): boolean {
   return q === '' || searchText(n).includes(q);
 }
 
+/** Visibility from kind, group and confidence filters. The search query never hides nodes; see `searchMatches`. */
 export function applyFilters(g: GraphJson, f: FilterState): Visible {
-  const nodeIds = new Set(
-    g.nodes.filter((n) => f.kinds.has(n.kind) && f.groups.has(groupOf(n)) && matchesQuery(n, f.query)).map((n) => n.id),
-  );
+  const nodeIds = new Set(g.nodes.filter((n) => f.kinds.has(n.kind) && f.groups.has(groupOf(n))).map((n) => n.id));
   const edgeIds = new Set(
     g.edges.filter((e) => f.confidences.has(e.confidence) && nodeIds.has(e.source) && nodeIds.has(e.target)).map((e) => e.id),
   );
   return { nodeIds, edgeIds };
+}
+
+/** Visible nodes matching the query, or null when the query is empty. */
+export function searchMatches(g: GraphJson, query: string, visible: Visible): Set<string> | null {
+  if (query.trim() === '') return null;
+  return new Set(g.nodes.filter((n) => visible.nodeIds.has(n.id) && matchesQuery(n, query)).map((n) => n.id));
 }
 
 export function countByKind(g: GraphJson): Record<string, number> {
