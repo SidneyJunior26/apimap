@@ -4,8 +4,12 @@ import type { FocusMode, Selection } from '../state';
 interface Props {
   graph: GraphJson;
   selection: Selection;
+  editable: boolean;
   onSelectionChange: (s: Selection) => void;
   onSelect: (id: string | null) => void;
+  onCreate: (id?: string) => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
 const FOCUS: Array<{ mode: FocusMode; label: string; hint: string }> = [
@@ -53,7 +57,7 @@ function DependencyList({ title, edges, side, graph, onSelect }: { title: string
   );
 }
 
-export function NodeDetail({ graph, selection, onSelectionChange, onSelect }: Props) {
+export function NodeDetail({ graph, selection, editable, onSelectionChange, onSelect, onCreate, onEdit, onDelete }: Props) {
   const node = graph.nodes.find((n) => n.id === selection.selectedId);
   if (!node) {
     return (
@@ -82,6 +86,26 @@ export function NodeDetail({ graph, selection, onSelectionChange, onSelect }: Pr
         {node.ghost && <span className="badge badge--ghost">not in catalog</span>}
         <code className="muted">{node.id}</code>
       </p>
+      {editable && (
+        <div className="detail__actions">
+          {node.ghost ? (
+            <button type="button" className="chip" onClick={() => onCreate(node.id)}>
+              Add to catalog
+            </button>
+          ) : node.locked ? (
+            <span className="muted small">Locked: edit the YAML file to change it.</span>
+          ) : (
+            <>
+              <button type="button" className="chip" onClick={() => onEdit(node.id)}>
+                Edit
+              </button>
+              <button type="button" className="chip chip--danger" onClick={() => onDelete(node.id)}>
+                Delete
+              </button>
+            </>
+          )}
+        </div>
+      )}
       {node.description && <p>{node.description}</p>}
       <dl className="facts">
         {node.group && (<><dt>Group</dt><dd>{graph.groups[node.group]?.label ?? node.group}</dd></>)}

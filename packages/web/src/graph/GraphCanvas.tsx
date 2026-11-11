@@ -5,7 +5,7 @@ import { searchMatches, type Visible } from '../filters';
 import type { Selection } from '../state';
 import { GlowNodeProgram } from './glowNodeProgram';
 import { drawHoverLabel } from './labels';
-import { runLayout, toGraphology, type EdgeAttrs, type NodeAttrs } from './layout';
+import { runLayout, toGraphology, type EdgeAttrs, type NodeAttrs, type Positions } from './layout';
 import { LinksLayer, type LinksState } from './links';
 import { Toolbar } from './Toolbar';
 import { neighbors } from './traversal';
@@ -30,6 +30,9 @@ export function GraphCanvas({ graph, visible, query, selection, onSelect, onRese
   const containerRef = useRef<HTMLDivElement>(null);
   const sigmaRef = useRef<Sigma<NodeAttrs, EdgeAttrs> | null>(null);
   const hoveredRef = useRef<string | null>(null);
+  // Survive graph reloads (local editor): node positions and camera stay where the user left them.
+  const positionsRef = useRef<Positions>(new Map());
+  const cameraRef = useRef<{ x: number; y: number; ratio: number; angle: number } | null>(null);
   const linksState = useRef<LinksState>({ visibleEdges: visible.edgeIds, visibleNodes: visible.nodeIds, highlight: null, animate: !prefersReducedMotion() });
   const propsRef = useRef({ visible, query, selection, onSelect });
   propsRef.current = { visible, query, selection, onSelect };
@@ -54,7 +57,8 @@ export function GraphCanvas({ graph, visible, query, selection, onSelect, onRese
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    const g = toGraphology(graph);
+    const g = toGraphology(graph, positionsRef.current);
+    const hadPositions = positionsRef.current.size > 0;
     const sigma = new Sigma<NodeAttrs, EdgeAttrs>(g, container, {
       allowInvalidContainer: true,
       defaultNodeType: 'glow',
@@ -118,10 +122,13 @@ export function GraphCanvas({ graph, visible, query, selection, onSelect, onRese
     };
     media.addEventListener('change', onMotion);
 
-    const stopLayout = runLayout(g);
+    if (cameraRef.current) sigma.getCamera().setState(cameraRef.current);
+    const stopLayout = runLayout(g, hadPositions ? 700 : 2500);
     refresh();
 
     return () => {
+      g.forEachNode((id, a) => positionsRef.current.set(id, { x: a.x, y: a.y }));
+      cameraRef.current = sigma.getCamera().getState();
       media.removeEventListener('change', onMotion);
       stopLayout();
       links.kill();

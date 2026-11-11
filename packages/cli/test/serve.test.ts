@@ -36,7 +36,7 @@ beforeEach(async () => {
     'services/payments.yaml': 'id: payments-api\nname: Payments\nkind: core\nowner: t\n',
     'services/legacy.yaml': 'id: legacy\nname: Legacy\nkind: legacy\nowner: t\nlocked: true\n',
   });
-  webDist = await catalog({ 'index.html': '<!doctype html><title>apimap</title>' });
+  webDist = await catalog({ 'index.html': '<!doctype html><html><head><title>apimap</title></head></html>' });
   app = createServeApp(root, { webDist, port: PORT }).app;
 });
 
@@ -116,6 +116,8 @@ describe('serve API', () => {
   it('serves the viewer', async () => {
     const res = await req('GET', '/');
     expect(res.status).toBe(200);
-    expect(await res.text()).toContain('<title>apimap</title>');
+    const html = await res.text();
+    expect(html).toContain('<title>apimap</title>');
+    expect(html).toContain('<meta name="apimap-editable" content="true">');
   });
 });

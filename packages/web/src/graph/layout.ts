@@ -38,7 +38,9 @@ export function nodeSize(inDegree: number, outDegree: number): number {
 }
 
 /** Builds a graphology graph with seeded positions: each group starts in its own sector so clusters form quickly. */
-export function toGraphology(g: GraphJson): ApiGraph {
+export type Positions = Map<string, { x: number; y: number }>;
+
+export function toGraphology(g: GraphJson, previous?: Positions): ApiGraph {
   const graph: ApiGraph = new Graph({ type: 'directed', multi: true, allowSelfLoops: true });
   const groups = [...new Set(g.nodes.map(groupOf))].sort();
   for (const n of g.nodes) {
@@ -57,7 +59,26 @@ export function toGraphology(g: GraphJson): ApiGraph {
     });
   }
   for (const e of g.edges) graph.addDirectedEdgeWithKey(e.id, e.source, e.target, { weight: e.confidence === 'confirmed' ? 1 : 0.6 });
+  if (previous?.size) seedFromPrevious(graph, previous);
   return graph;
+}
+
+/** Keeps positions of nodes that already existed and puts new ones next to their known neighbors. */
+function seedFromPrevious(graph: ApiGraph, previous: Positions): void {
+  graph.forEachNode((id) => {
+    const p = previous.get(id);
+    if (p) graph.mergeNodeAttributes(id, { x: p.x, y: p.y });
+  });
+  graph.forEachNode((id) => {
+    if (previous.has(id)) return;
+    const known = graph.neighbors(id).map((n) => previous.get(n)).filter((p): p is { x: number; y: number } => Boolean(p));
+    if (!known.length) return;
+    const angle = hash01(id) * Math.PI * 2;
+    graph.mergeNodeAttributes(id, {
+      x: known.reduce((s, p) => s + p.x, 0) / known.length + Math.cos(angle) * 20,
+      y: known.reduce((s, p) => s + p.y, 0) / known.length + Math.sin(angle) * 20,
+    });
+  });
 }
 
 /** Runs ForceAtlas2 in a web worker for `ms` milliseconds. Returns a function that stops and frees the worker. */

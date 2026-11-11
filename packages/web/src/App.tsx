@@ -1,31 +1,68 @@
 import type { GraphJson } from '@apimap/core';
-import { useEffect, useMemo, useState } from 'react';
-import { loadGraph } from './data';
-import { applyFilters, initialFilters, type FilterState } from './filters';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { api } from './api';
 import { Nebula } from './background/Nebula';
+import { loadGraph } from './data';
+import { DeleteDialog } from './editor/DeleteDialog';
+import { EditorDrawer, type EditorTarget } from './editor/EditorDrawer';
+import { applyFilters, initialFilters, refreshFilters, type FilterState } from './filters';
 import { GraphCanvas } from './graph/GraphCanvas';
 import { Sidebar } from './panel/Sidebar';
 import { initialSelection, type Selection } from './state';
 
 export function App() {
   const [graph, setGraph] = useState<GraphJson | null>(null);
+  const [editable, setEditable] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<FilterState | null>(null);
   const [selection, setSelection] = useState<Selection>(initialSelection);
+  const [editor, setEditor] = useState<EditorTarget | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const graphRef = useRef<GraphJson | null>(null);
+  const filtersRef = useRef<FilterState | null>(null);
+  filtersRef.current = filters;
 
-  useEffect(() => {
-    loadGraph()
-      .then((g) => {
-        document.title = g.name;
-        setGraph(g);
-        setFilters(initialFilters(g));
-      })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)));
+  const reload = useCallback(async () => {
+    try {
+      const loaded = await loadGraph();
+      const prev = graphRef.current;
+      const f = filtersRef.current;
+      graphRef.current = loaded.graph;
+      document.title = loaded.graph.name;
+      setGraph(loaded.graph);
+      setEditable(loaded.editable);
+      setFilters(prev && f ? refreshFilters(prev, loaded.graph, f) : initialFilters(loaded.graph));
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
   }, []);
 
-  const visible = useMemo(() => (graph && filters ? applyFilters(graph, filters) : null), [graph, filters]);
+  useEffect(() => {
+    void reload();
+  }, [reload]);
 
-  if (error) {
+  // In the local editor, reload when any YAML file changes on disk.
+  useEffect(() => {
+    if (!editable) return;
+    const events = new EventSource('./api/events');
+    events.addEventListener('graph', () => void reload());
+    return () => events.close();
+  }, [editable, reload]);
+
+  const visible = useMemo(() => (graph && filters ? applyFilters(graph, filters) : null), [graph, filters]);
+  const select = (id: string | null) => setSelection((s) => ({ ...s, selectedId: id, focusMode: 'none' }));
+
+  const openEdit = async (id: string) => {
+    try {
+      const { file, ...service } = await api.get(id);
+      setEditor({ mode: 'edit', service, file });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  if (error && !graph) {
     return (
       <main className="state" role="alert">
         <h1>Could not load the map</h1>
@@ -49,9 +86,13 @@ export function App() {
         {graph.nodes.length === 0 ? (
           <div className="state" role="status">
             <h1>No services yet</h1>
-            <p>
-              Add YAML files to <code>services/</code> and run <code>apimap build</code>.
-            </p>
+            {editable ? (
+              <p>Use "New service" to add the first one.</p>
+            ) : (
+              <p>
+                Add YAML files to <code>services/</code> and run <code>apimap build</code>.
+              </p>
+            )}
           </div>
         ) : (
           <GraphCanvas
@@ -59,7 +100,7 @@ export function App() {
             visible={visible}
             query={filters.query}
             selection={selection}
-            onSelect={(id) => setSelection({ ...selection, selectedId: id, focusMode: 'none' })}
+            onSelect={select}
             onResetFilters={() => setFilters(initialFilters(graph))}
           />
         )}
@@ -69,9 +110,36 @@ export function App() {
         filters={filters}
         visible={visible}
         selection={selection}
+        editable={editable}
         onFiltersChange={setFilters}
         onSelectionChange={setSelection}
+        onCreate={(id) => setEditor({ mode: 'create', id })}
+        onEdit={(id) => void openEdit(id)}
+        onDelete={setDeleting}
       />
+      {editor && (
+        <EditorDrawer
+          graph={graph}
+          target={editor}
+          onClose={() => setEditor(null)}
+          onSaved={(id) => {
+            setEditor(null);
+            void reload().then(() => select(id));
+          }}
+        />
+      )}
+      {deleting && (
+        <DeleteDialog
+          graph={graph}
+          id={deleting}
+          onCancel={() => setDeleting(null)}
+          onDeleted={() => {
+            setDeleting(null);
+            select(null);
+            void reload();
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -113,6 +113,11 @@ export function createServeApp(root: string, opts: ServeOptions) {
   app.get('*', async (c) => {
     const file = (await readStatic(opts.webDist, c.req.path)) ?? (await readStatic(opts.webDist, '/index.html'));
     if (!file) return c.text('viewer assets not found', 500);
+    if (file.type.startsWith('text/html')) {
+      // Tells the viewer it can use the editing API.
+      const html = file.body.toString('utf8').replace('<head>', '<head><meta name="apimap-editable" content="true">');
+      return c.html(html);
+    }
     return c.body(new Uint8Array(file.body), 200, { 'content-type': file.type });
   });
 
