@@ -16,8 +16,7 @@
   "homepage": "https://sidneyjunior26.github.io/apimap/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SidneyJunior26/apimap.git",
-    "directory": "packages/cli"
+    "url": "git+https://github.com/SidneyJunior26/apimap.git"
   },
   "bugs": {
     "url": "https://github.com/SidneyJunior26/apimap/issues"
