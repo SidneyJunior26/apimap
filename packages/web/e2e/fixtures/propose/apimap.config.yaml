@@ -1,0 +1,5 @@
+name: Propose Fixture
+edit:
+  repo: acme/catalog
+  branch: main
+  path: map

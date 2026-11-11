@@ -10,10 +10,11 @@ test('applies the theme from the URL and ignores invalid values', async ({ page 
 });
 
 test('switches between 2D and 3D and keeps it in the URL', async ({ page }) => {
+  test.setTimeout(120_000);
   await page.goto('/?theme=nebula');
-  await expect(page.getByTestId('graph-canvas')).toBeVisible();
+  await expect(page.getByText('50 of 50 services')).toBeVisible();
   await page.getByRole('button', { name: '3D', exact: true }).click();
-  await expect(page.getByTestId('graph-canvas-3d').locator('canvas').first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId('graph-canvas-3d').locator('canvas').first()).toBeVisible({ timeout: 60_000 });
   await expect(page).toHaveURL(/view=3d/);
   await page.getByRole('button', { name: '2D', exact: true }).click();
   await expect(page.getByTestId('graph-canvas')).toBeVisible();

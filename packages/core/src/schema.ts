@@ -48,6 +48,15 @@ export const GroupSchema = z.object({
   color: z.string().optional(),
 });
 
+/** Where the catalog lives on GitHub, so the published site can propose changes as pull requests. */
+export const EditTargetSchema = z.object({
+  provider: z.literal('github').default('github'),
+  repo: z.string().regex(/^[\w.-]+\/[\w.-]+$/, 'repo must look like owner/name'),
+  branch: z.string().min(1).default('main'),
+  /** Catalog folder relative to the repository root ('' when it is the root). */
+  path: z.string().default(''),
+});
+
 export const ConfigSchema = z.object({
   name: z.string().default('API Map'),
   sources: z.array(z.string()).default([]),
@@ -59,6 +68,8 @@ export const ConfigSchema = z.object({
       internalDomains: z.array(z.string()).default([]),
     })
     .default({}),
+  /** `false` turns off "propose change" links even when the git remote is on GitHub. */
+  edit: z.union([z.literal(false), EditTargetSchema]).optional(),
 });
 
 export type Confidence = z.infer<typeof ConfidenceSchema>;
@@ -67,3 +78,4 @@ export type Evidence = z.infer<typeof EvidenceSchema>;
 export type Dependency = z.infer<typeof DependencySchema>;
 export type Service = z.infer<typeof ServiceSchema>;
 export type Config = z.infer<typeof ConfigSchema>;
+export type EditTarget = z.infer<typeof EditTargetSchema>;

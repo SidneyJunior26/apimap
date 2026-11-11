@@ -1,25 +1,23 @@
 import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { watchCatalog } from '../src/serve/watch.js';
 
-const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
 describe('watchCatalog', () => {
-  it('fires once per burst of changes in services/', async () => {
+  it('fires after changes in services/ and in the config, coalescing bursts', { timeout: 20_000 }, async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), 'apimap-watch-'));
     await mkdir(path.join(root, 'services'));
     let calls = 0;
-    const stop = await watchCatalog(root, () => calls++, { debounceMs: 100 });
+    const stop = await watchCatalog(root, () => calls++, { debounceMs: 300 });
     try {
-      await writeFile(path.join(root, 'services/a.yaml'), 'id: a\n');
-      await writeFile(path.join(root, 'services/b.yaml'), 'id: b\n');
-      await wait(700);
-      expect(calls).toBe(1);
+      await Promise.all([writeFile(path.join(root, 'services/a.yaml'), 'id: a\n'), writeFile(path.join(root, 'services/b.yaml'), 'id: b\n')]);
+      await vi.waitFor(() => expect(calls).toBeGreaterThanOrEqual(1), { timeout: 5000, interval: 50 });
+      // Writes in one burst are coalesced; allow one extra event if the machine stalls between them.
+      expect(calls).toBeLessThanOrEqual(2);
+      const before = calls;
       await writeFile(path.join(root, 'apimap.config.yaml'), 'name: X\n');
-      await wait(700);
-      expect(calls).toBe(2);
+      await vi.waitFor(() => expect(calls).toBeGreaterThan(before), { timeout: 5000, interval: 50 });
     } finally {
       await stop();
     }

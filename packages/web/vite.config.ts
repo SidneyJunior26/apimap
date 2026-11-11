@@ -6,6 +6,12 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   base: './',
   plugins: [react()],
-  resolve: { alias: { '@apimap/core': fileURLToPath(new URL('../core/src/index.ts', import.meta.url)) } },
+  resolve: {
+    alias: [
+      // Subpaths (schema, serialize, mermaid) are browser-safe; the root entry is only imported for types.
+      { find: /^@apimap\/core\/(.+)$/, replacement: fileURLToPath(new URL('../core/src/$1.ts', import.meta.url)) },
+      { find: /^@apimap\/core$/, replacement: fileURLToPath(new URL('../core/src/index.ts', import.meta.url)) },
+    ],
+  },
   test: { environment: 'node', include: ['test/**/*.test.ts'] },
 });

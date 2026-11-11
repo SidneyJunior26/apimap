@@ -1,6 +1,6 @@
 import type { GraphJson, Service } from '@apimap/core';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { api, ApiError } from '../api';
+import { ApiError } from '../api';
 import { DepsTable } from './DepsTable';
 import { emptyForm, formToService, serviceToForm, type ServiceForm } from './form';
 
@@ -10,13 +10,16 @@ export type EditorTarget = { mode: 'create'; id?: string } | { mode: 'edit'; ser
 interface Props {
   graph: GraphJson;
   target: EditorTarget;
+  /** Final action: save through the local API or prepare a GitHub proposal. Throw ApiError to show field errors. */
+  onSubmit: (service: Service, isNew: boolean) => Promise<void>;
+  submitLabel?: { create: string; edit: string };
+  note?: string;
   onClose: () => void;
-  onSaved: (id: string) => void;
 }
 
 type TextField = Exclude<keyof ServiceForm, 'dependsOn' | 'kind'>;
 
-export function EditorDrawer({ graph, target, onClose, onSaved }: Props) {
+export function EditorDrawer({ graph, target, onSubmit, submitLabel = { create: 'Create service', edit: 'Save changes' }, note, onClose }: Props) {
   const base = target.mode === 'edit' ? target.service : undefined;
   const [form, setForm] = useState<ServiceForm>(() => (base ? serviceToForm(base) : emptyForm('core', target.mode === 'create' ? (target.id ?? '') : '')));
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -41,9 +44,7 @@ export function EditorDrawer({ graph, target, onClose, onSaved }: Props) {
     setErrors({});
     setMessage(null);
     try {
-      const service = formToService(form, base);
-      const saved = base ? await api.update(service) : await api.create(service);
-      onSaved(saved.id);
+      await onSubmit(formToService(form, base), !base);
     } catch (err) {
       if (err instanceof ApiError) {
         setErrors(Object.fromEntries(err.issues.map((i) => [i.path, i.message])));
@@ -88,10 +89,14 @@ export function EditorDrawer({ graph, target, onClose, onSaved }: Props) {
           </button>
         </header>
         <div className="drawer__body">
-          {target.mode === 'edit' && (
-            <p className="muted small">
-              Saved to <code>{target.file}</code>. Comments in the file are kept.
-            </p>
+          {note ? (
+            <p className="muted small">{note}</p>
+          ) : (
+            target.mode === 'edit' && (
+              <p className="muted small">
+                Saved to <code>{target.file}</code>. Comments in the file are kept.
+              </p>
+            )
           )}
           {field('id', 'Id', { required: true, placeholder: 'payments-api', disabled: Boolean(base) })}
           {field('name', 'Name', { required: true, placeholder: 'Payments API' })}
@@ -134,7 +139,7 @@ export function EditorDrawer({ graph, target, onClose, onSaved }: Props) {
             Cancel
           </button>
           <button type="submit" className="chip chip--on" disabled={saving}>
-            {saving ? 'Saving…' : base ? 'Save changes' : 'Create service'}
+            {saving ? 'Working…' : base ? submitLabel.edit : submitLabel.create}
           </button>
         </footer>
       </form>

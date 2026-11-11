@@ -10,10 +10,11 @@ interface Props {
   onToggleView: () => void;
   onToggleTheme: () => void;
   onExport: () => void;
+  onCopyMermaid: () => void;
   onResetFilters: () => void;
 }
 
-export function Toolbar({ controller, view, theme, exporting, onToggleView, onToggleTheme, onExport, onResetFilters }: Props) {
+export function Toolbar({ controller, view, theme, exporting, onToggleView, onToggleTheme, onExport, onCopyMermaid, onResetFilters }: Props) {
   return (
     <div className="toolbar" role="toolbar" aria-label="Graph view">
       <button type="button" aria-label="Zoom in" title="Zoom in" onClick={() => controller.current?.zoomIn()}>
@@ -34,6 +35,9 @@ export function Toolbar({ controller, view, theme, exporting, onToggleView, onTo
       </button>
       <button type="button" className="toolbar__text" title="Download the current view as PNG" disabled={exporting} onClick={onExport}>
         {exporting ? 'Saving…' : 'PNG'}
+      </button>
+      <button type="button" className="toolbar__text" title="Copy the visible services as a Mermaid diagram" onClick={onCopyMermaid}>
+        Mermaid
       </button>
       <span className="toolbar__sep" aria-hidden />
       <button type="button" className="toolbar__text" onClick={onResetFilters}>

@@ -9,7 +9,13 @@ import { CONFIG_FILE } from '@apimap/core';
 export async function watchCatalog(root: string, onChange: () => void, opts: { debounceMs?: number } = {}): Promise<() => Promise<void>> {
   const debounceMs = opts.debounceMs ?? 150;
   let timer: NodeJS.Timeout | undefined;
-  const watcher = watch([path.join(root, CONFIG_FILE), path.join(root, 'services')], { ignoreInitial: true });
+  // Watch the catalog folder itself so a config file created later is noticed too.
+  const base = path.resolve(root);
+  const relevant = (p: string) => {
+    const rel = path.relative(base, p);
+    return rel === '' || rel === CONFIG_FILE || rel === 'services' || rel.startsWith(`services${path.sep}`);
+  };
+  const watcher = watch(base, { ignoreInitial: true, ignored: (p) => !relevant(p) });
   watcher.on('all', () => {
     clearTimeout(timer);
     timer = setTimeout(onChange, debounceMs);

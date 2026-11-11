@@ -1,0 +1,7 @@
+id: orders-api
+name: Orders API
+kind: core
+owner: team-orders
+dependsOn:
+  - target: payments-api
+    note: charges

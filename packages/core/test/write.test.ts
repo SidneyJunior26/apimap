@@ -52,3 +52,13 @@ describe('writeServiceFile', () => {
     expect(await readFile(file, 'utf8')).toBe(text);
   });
 });
+
+describe('serviceToYaml', () => {
+  it('produces a parseable file with the schema header', async () => {
+    const { serviceToYaml } = await import('../src/serialize.js');
+    const s = ServiceSchema.parse({ id: 'a', name: 'A "quoted"', kind: 'core', dependsOn: [{ target: 'b', protocol: 'soap' }] });
+    const text = serviceToYaml(s);
+    expect(text.startsWith('# yaml-language-server: $schema=')).toBe(true);
+    expect(ServiceSchema.parse(parse(text))).toEqual(s);
+  });
+});

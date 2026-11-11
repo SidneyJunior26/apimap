@@ -1,6 +1,6 @@
 import type { KindDef } from './kinds.js';
 import type { Catalog } from './load.js';
-import type { Config, Confidence, Evidence, Origin } from './schema.js';
+import type { Config, Confidence, EditTarget, Evidence, Origin } from './schema.js';
 
 export interface GraphNode {
   id: string;
@@ -41,12 +41,14 @@ export interface GraphJson {
   groups: Config['groups'];
   nodes: GraphNode[];
   edges: GraphEdge[];
+  /** Present when the published site may propose changes as GitHub pull requests. */
+  edit?: EditTarget;
 }
 
 const byId = <T extends { id: string }>(a: T, b: T) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 
 /** Builds the serializable graph. First declaration wins on duplicate ids or edges. */
-export function buildGraph(c: Catalog, now: Date = new Date()): GraphJson {
+export function buildGraph(c: Catalog, now: Date = new Date(), opts: { edit?: EditTarget } = {}): GraphJson {
   const nodes = new Map<string, GraphNode>();
   for (const s of c.services) {
     if (nodes.has(s.id)) continue;
@@ -94,5 +96,6 @@ export function buildGraph(c: Catalog, now: Date = new Date()): GraphJson {
     groups: c.config.groups,
     nodes: [...nodes.values()].sort(byId),
     edges: [...edges.values()].sort(byId),
+    ...(opts.edit ? { edit: opts.edit } : {}),
   };
 }
