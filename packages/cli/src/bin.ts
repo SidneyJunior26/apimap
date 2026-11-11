@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { runBuild, runLink, runScan, runServe, runValidate } from './index.js';
+import { runBuild, runDiff, runExport, runLink, runScan, runServe, runValidate } from './index.js';
 
 const program = new Command('apimap').description('Map your APIs as an interactive graph').version('0.1.0');
 
@@ -61,6 +61,27 @@ program
   .action(async (dir: string, opts: { port: number; open?: boolean; webDist?: string }) => {
     const code = await runServe(dir, opts);
     if (code !== 0) process.exitCode = code;
+  });
+
+program
+  .command('export')
+  .description('export the catalog as a diagram')
+  .argument('[dir]', 'catalog directory', '.')
+  .option('-f, --format <format>', 'output format: mermaid', 'mermaid')
+  .option('-o, --out <file>', 'write to a file instead of stdout')
+  .option('--direction <dir>', 'LR (left to right) or TB (top to bottom)', 'LR')
+  .action(async (dir: string, opts: { format: string; out?: string; direction: 'LR' | 'TB' }) => {
+    process.exitCode = await runExport(dir, opts);
+  });
+
+program
+  .command('diff')
+  .description('show services and links changed since a git ref')
+  .argument('[dir]', 'catalog directory', '.')
+  .option('-b, --base <ref>', 'git ref to compare against (default: origin/main, then main)')
+  .option('-f, --format <format>', 'text or markdown', 'text')
+  .action(async (dir: string, opts: { base?: string; format: 'text' | 'markdown' }) => {
+    process.exitCode = await runDiff(dir, opts);
   });
 
 program.parseAsync().catch((err: unknown) => {
