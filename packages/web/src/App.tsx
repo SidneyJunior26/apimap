@@ -19,24 +19,47 @@ export function App() {
   const [editor, setEditor] = useState<EditorTarget | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const graphRef = useRef<GraphJson | null>(null);
+  const graphKey = useRef('');
   const filtersRef = useRef<FilterState | null>(null);
   filtersRef.current = filters;
+  // A save triggers both an explicit reload and a file-watch event: run one at a time and fold the rest into one.
+  const inFlight = useRef<Promise<void> | null>(null);
+  const queued = useRef(false);
 
-  const reload = useCallback(async () => {
+  const fetchAndApply = useCallback(async () => {
     try {
       const loaded = await loadGraph();
+      const key = JSON.stringify({ ...loaded.graph, generatedAt: '' });
+      setEditable(loaded.editable);
+      if (key === graphKey.current) return;
+      graphKey.current = key;
       const prev = graphRef.current;
       const f = filtersRef.current;
       graphRef.current = loaded.graph;
       document.title = loaded.graph.name;
       setGraph(loaded.graph);
-      setEditable(loaded.editable);
       setFilters(prev && f ? refreshFilters(prev, loaded.graph, f) : initialFilters(loaded.graph));
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
   }, []);
+
+  const reload = useCallback((): Promise<void> => {
+    if (inFlight.current) {
+      queued.current = true;
+      return inFlight.current;
+    }
+    const run = (async () => {
+      do {
+        queued.current = false;
+        await fetchAndApply();
+      } while (queued.current);
+      inFlight.current = null;
+    })();
+    inFlight.current = run;
+    return run;
+  }, [fetchAndApply]);
 
   useEffect(() => {
     void reload();

@@ -81,6 +81,15 @@ function seedFromPrevious(graph: ApiGraph, previous: Positions): void {
   });
 }
 
+/** Replaces the contents of `g` with `data`, keeping positions of nodes that already existed. */
+export function syncGraphology(g: ApiGraph, data: GraphJson): void {
+  const positions: Positions = new Map();
+  g.forEachNode((id, a) => positions.set(id, { x: a.x, y: a.y }));
+  const fresh = toGraphology(data, positions);
+  g.clear();
+  g.import(fresh.export());
+}
+
 /** Runs ForceAtlas2 in a web worker for `ms` milliseconds. Returns a function that stops and frees the worker. */
 export function runLayout(graph: ApiGraph, ms = 2500): () => void {
   if (graph.order < 2) return () => {};

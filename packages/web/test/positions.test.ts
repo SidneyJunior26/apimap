@@ -13,3 +13,15 @@ describe('toGraphology with previous positions', () => {
     expect(Math.hypot(c.x - 200, c.y)).toBeLessThan(60);
   });
 });
+
+describe('syncGraphology', () => {
+  it('updates the graph in place, keeping positions and dropping removed nodes', async () => {
+    const { syncGraphology } = await import('../src/graph/layout.js');
+    const g = toGraphology(graph([node('a'), node('b')], [edge('a', 'b')]));
+    g.mergeNodeAttributes('a', { x: 5, y: 7 });
+    syncGraphology(g, graph([node('a', { label: 'Renamed' }), node('c')], [edge('c', 'a')]));
+    expect(g.nodes().sort()).toEqual(['a', 'c']);
+    expect(g.getNodeAttributes('a')).toMatchObject({ x: 5, y: 7, label: 'Renamed' });
+    expect(g.edges()).toEqual(['c->a:http']);
+  });
+});
