@@ -32,7 +32,8 @@ program
   .option('--dry-run', 'show what would change without writing')
   .option('--create-stubs', 'create external services for unresolved hosts outside the internal domains')
   .option('-i, --internal-domain <domain>', 'internal domain, e.g. acme.internal or *.corp.example (repeatable; adds to scan.internalDomains)', collect)
-  .action(async (dir: string, opts: { source?: string[]; dryRun?: boolean; createStubs?: boolean; internalDomain?: string[] }) => {
+  .option('--no-fetch', 'use cached copies of git sources without updating them')
+  .action(async (dir: string, opts: { source?: string[]; dryRun?: boolean; createStubs?: boolean; internalDomain?: string[]; fetch?: boolean }) => {
     process.exitCode = await runScan(dir, opts);
   });
 

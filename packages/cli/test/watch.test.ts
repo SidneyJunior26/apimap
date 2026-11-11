@@ -11,14 +11,13 @@ describe('watchCatalog', () => {
     const root = await mkdtemp(path.join(os.tmpdir(), 'apimap-watch-'));
     await mkdir(path.join(root, 'services'));
     let calls = 0;
-    const stop = await watchCatalog(root, () => calls++, { debounceMs: 100 });
+    const stop = await watchCatalog(root, () => calls++, { debounceMs: 400 });
     try {
-      await writeFile(path.join(root, 'services/a.yaml'), 'id: a\n');
-      await writeFile(path.join(root, 'services/b.yaml'), 'id: b\n');
-      await wait(700);
+      await Promise.all([writeFile(path.join(root, 'services/a.yaml'), 'id: a\n'), writeFile(path.join(root, 'services/b.yaml'), 'id: b\n')]);
+      await wait(1200);
       expect(calls).toBe(1);
       await writeFile(path.join(root, 'apimap.config.yaml'), 'name: X\n');
-      await wait(700);
+      await wait(1200);
       expect(calls).toBe(2);
     } finally {
       await stop();

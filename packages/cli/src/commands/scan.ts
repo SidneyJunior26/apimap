@@ -18,6 +18,7 @@ import { scanRepo, type RepoScan } from '@apimap/scanners';
 import fg from 'fast-glob';
 import pc from 'picocolors';
 import { formatDiagnostics } from '../report.js';
+import { isGitSource, repoLabel, syncGitSource } from '../sources.js';
 import { loadAndValidate } from './check.js';
 
 export interface ScanOptions {
@@ -28,6 +29,8 @@ export interface ScanOptions {
   createStubs?: boolean;
   /** Extra internal domains, added to `scan.internalDomains` from the config. */
   internalDomain?: string[];
+  /** Update git sources before scanning (default true). False reuses the cached copies. */
+  fetch?: boolean;
 }
 
 const MAX_EVIDENCE = 3;
@@ -44,13 +47,32 @@ function serviceIdFor(repoDir: string, scan: RepoScan, services: CatalogService[
   return byRepo?.id ?? slugify(base);
 }
 
-async function expandSources(root: string, globs: string[]): Promise<string[]> {
+interface Sources {
+  dirs: string[];
+  /** Repository label (`host/owner/name`) for directories that came from git. */
+  repoOf: Map<string, string>;
+  errors: string[];
+}
+
+async function expandSources(root: string, entries: string[], fetch: boolean): Promise<Sources> {
   const dirs = new Set<string>();
-  for (const g of globs) {
-    const pattern = path.isAbsolute(g) ? g : path.join(root, g);
+  const repoOf = new Map<string, string>();
+  const errors: string[] = [];
+  for (const entry of entries) {
+    if (isGitSource(entry)) {
+      try {
+        const dir = path.resolve(await syncGitSource(root, entry, { fetch }));
+        dirs.add(dir);
+        repoOf.set(dir, repoLabel(entry));
+      } catch (err) {
+        errors.push(`${repoLabel(entry)}: ${err instanceof Error ? err.message.split('\n')[0] : String(err)}`);
+      }
+      continue;
+    }
+    const pattern = path.isAbsolute(entry) ? entry : path.join(root, entry);
     for (const d of await fg(pattern.split(path.sep).join('/'), { onlyDirectories: true, absolute: true })) dirs.add(path.resolve(d));
   }
-  return [...dirs].sort();
+  return { dirs: [...dirs].sort(), repoOf, errors };
 }
 
 interface Unresolved {
@@ -76,14 +98,23 @@ export async function runScan(dir: string, opts: ScanOptions): Promise<number> {
     console.error('no sources: pass --source <glob> or set "sources" in apimap.config.yaml');
     return 1;
   }
-  const repos = await expandSources(root, globs);
+  const sources = await expandSources(root, globs, opts.fetch ?? true);
+  for (const e of sources.errors) console.error(`${pc.red('!')} could not get ${e}`);
+  const repos = sources.dirs;
   if (!repos.length) {
     console.error(`no repository directories matched: ${globs.join(', ')}`);
     return 1;
   }
 
   // Pass 1: scan every repo and learn which hosts belong to which service.
-  const scans = await Promise.all(repos.map(async (repoDir) => ({ repoDir, scan: await scanRepo(repoDir) })));
+  const scans = await Promise.all(
+    repos.map(async (repoDir) => {
+      const scan = await scanRepo(repoDir);
+      const repo = sources.repoOf.get(repoDir);
+      if (repo) scan.hints.repo ??= repo;
+      return { repoDir, scan };
+    }),
+  );
   const assigned = scans.map(({ repoDir, scan }) => ({ repoDir, scan, id: serviceIdFor(repoDir, scan, catalog.services) }));
   const byId = new Map<string, CatalogService>(catalog.services.map((s) => [s.id, s]));
   const index = buildHostIndex([
