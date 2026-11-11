@@ -12,7 +12,7 @@ export interface BuildOptions {
   webDist?: string;
 }
 
-function resolveWebDist(): string {
+export function resolveWebDist(): string {
   try {
     return path.dirname(fileURLToPath(import.meta.resolve('@apimap/web/dist/index.html')));
   } catch {

@@ -63,14 +63,19 @@ export class LinksLayer {
     private state: LinksState,
   ) {
     this.ctx = canvas.getContext('2d')!;
-    this.edgeMeta = new Map(
-      data.edges.map((e) => {
-        const src = data.nodes.find((n) => n.id === e.source);
-        return [e.id, { confidence: e.confidence, color: data.kinds[src?.kind ?? '']?.color ?? '#94a3b8', phase: hash01(e.id) }];
-      }),
-    );
+    this.edgeMeta = new Map();
+    this.setData(data, groups);
     sigma.on('afterRender', this.onAfterRender);
     this.loop();
+  }
+
+  /** Call after the graph data changed (local editor reloads). */
+  setData(data: GraphJson, groups: Record<string, { label: string; color: string }>): void {
+    this.groups = groups;
+    const kindOf = new Map(data.nodes.map((n) => [n.id, n.kind]));
+    this.edgeMeta = new Map(
+      data.edges.map((e) => [e.id, { confidence: e.confidence, color: data.kinds[kindOf.get(e.source) ?? '']?.color ?? '#94a3b8', phase: hash01(e.id) }]),
+    );
   }
 
   private onAfterRender = () => {

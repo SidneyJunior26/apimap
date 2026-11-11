@@ -5,7 +5,7 @@ import { searchMatches, type Visible } from '../filters';
 import type { Selection } from '../state';
 import { GlowNodeProgram } from './glowNodeProgram';
 import { drawHoverLabel } from './labels';
-import { runLayout, toGraphology, type EdgeAttrs, type NodeAttrs } from './layout';
+import { runLayout, syncGraphology, toGraphology, type ApiGraph, type EdgeAttrs, type NodeAttrs } from './layout';
 import { LinksLayer, type LinksState } from './links';
 import { Toolbar } from './Toolbar';
 import { neighbors } from './traversal';
@@ -30,12 +30,15 @@ export function GraphCanvas({ graph, visible, query, selection, onSelect, onRese
   const containerRef = useRef<HTMLDivElement>(null);
   const sigmaRef = useRef<Sigma<NodeAttrs, EdgeAttrs> | null>(null);
   const hoveredRef = useRef<string | null>(null);
+  const linksRef = useRef<LinksLayer | null>(null);
+  const graphologyRef = useRef<ApiGraph | null>(null);
+  const stopLayoutRef = useRef<() => void>(() => {});
   const linksState = useRef<LinksState>({ visibleEdges: visible.edgeIds, visibleNodes: visible.nodeIds, highlight: null, animate: !prefersReducedMotion() });
-  const propsRef = useRef({ visible, query, selection, onSelect });
-  propsRef.current = { visible, query, selection, onSelect };
+  const propsRef = useRef({ graph, visible, query, selection, onSelect });
+  propsRef.current = { graph, visible, query, selection, onSelect };
 
   const computeHighlight = (): Set<string> | null => {
-    const { selection: sel, visible: vis, query: q } = propsRef.current;
+    const { graph, selection: sel, visible: vis, query: q } = propsRef.current;
     const hovered = hoveredRef.current;
     if (hovered) return neighbors(graph, hovered, 'both', 1, vis.edgeIds);
     if (!sel.selectedId) return searchMatches(graph, q, vis);
@@ -50,11 +53,20 @@ export function GraphCanvas({ graph, visible, query, selection, onSelect, onRese
     sigmaRef.current?.refresh({ skipIndexation: true });
   };
 
-  // Create sigma once per graph.
+  const groupsOf = (data: GraphJson) =>
+    Object.fromEntries(
+      [...new Set(data.nodes.map((n) => n.group).filter((x): x is string => Boolean(x)))].map((id) => [
+        id,
+        { label: data.groups[id]?.label ?? id, color: data.groups[id]?.color ?? FALLBACK_GROUP_COLOR },
+      ]),
+    );
+
+  // Create sigma once. Later graph changes are applied in place (see the effect below).
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     const g = toGraphology(graph);
+    graphologyRef.current = g;
     const sigma = new Sigma<NodeAttrs, EdgeAttrs>(g, container, {
       allowInvalidContainer: true,
       defaultNodeType: 'glow',
@@ -90,13 +102,8 @@ export function GraphCanvas({ graph, visible, query, selection, onSelect, onRese
     sigmaRef.current = sigma;
 
     const canvas = sigma.createCanvas('links', { beforeLayer: 'nodes', style: { pointerEvents: 'none' } });
-    const groups = Object.fromEntries(
-      [...new Set(graph.nodes.map((n) => n.group).filter((x): x is string => Boolean(x)))].map((id) => [
-        id,
-        { label: graph.groups[id]?.label ?? id, color: graph.groups[id]?.color ?? FALLBACK_GROUP_COLOR },
-      ]),
-    );
-    const links = new LinksLayer(sigma, canvas, graph, groups, linksState.current);
+    const links = new LinksLayer(sigma, canvas, graph, groupsOf(graph), linksState.current);
+    linksRef.current = links;
 
     sigma.on('enterNode', ({ node }) => {
       hoveredRef.current = node;
@@ -118,16 +125,31 @@ export function GraphCanvas({ graph, visible, query, selection, onSelect, onRese
     };
     media.addEventListener('change', onMotion);
 
-    const stopLayout = runLayout(g);
+    stopLayoutRef.current = runLayout(g);
     refresh();
 
     return () => {
       media.removeEventListener('change', onMotion);
-      stopLayout();
+      stopLayoutRef.current();
       links.kill();
       sigma.kill();
       sigmaRef.current = null;
+      linksRef.current = null;
+      graphologyRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Graph reloads (local editor): keep sigma, camera and known positions; settle new nodes briefly.
+  const firstGraph = useRef(graph);
+  useEffect(() => {
+    const g = graphologyRef.current;
+    if (!g || graph === firstGraph.current) return;
+    stopLayoutRef.current();
+    syncGraphology(g, graph);
+    linksRef.current?.setData(graph, groupsOf(graph));
+    stopLayoutRef.current = runLayout(g, 700);
+    refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [graph]);
 

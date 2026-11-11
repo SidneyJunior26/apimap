@@ -29,12 +29,21 @@ importers:
       '@apimap/web':
         specifier: workspace:^
         version: link:../web
+      '@hono/node-server':
+        specifier: ^1.13.7
+        version: 1.19.19(hono@4.13.18)
+      chokidar:
+        specifier: ^4.0.1
+        version: 4.0.3
       commander:
         specifier: ^12.1.0
         version: 12.1.0
       fast-glob:
         specifier: ^3.3.2
         version: 3.3.3
+      hono:
+        specifier: ^4.6.14
+        version: 4.13.18
       picocolors:
         specifier: ^1.1.1
         version: 1.1.1
@@ -661,6 +670,12 @@ packages:
   '@fontsource-variable/inter@5.3.0':
     resolution: {integrity: sha512-OupL48va4JNofb97w6NYeF9S7W/kHNKM0Er8Dem5nqi4jeOLrVJDoE8tZEpnMJmtkvNbB1EIPPwHcdkF6b1oUA==}
 
+  '@hono/node-server@1.19.19':
+    resolution: {integrity: sha512-Fy9R7PACOzHU9LDpfnuzVyuVYevKQRcEG2mZhmfc+DRdmayEd3RVfa2XOt2IgGcPNgA77Yk63KBszepcMFK5Ng==}
+    engines: {node: '>=18.14.1'}
+    peerDependencies:
+      hono: ^4
+
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
 
@@ -1065,6 +1080,10 @@ packages:
     resolution: {integrity: sha512-33g0Ol9nkWdD6ulw687viS8YJQBxqG5LWII6FI6nul0pq6iM2t5EKquOTFDbyTblRB3O9I+7KX4xI8u5ffekAQ==}
     peerDependencies:
       graphology-types: '>=0.24.0'
+
+  hono@4.13.18:
+    resolution: {integrity: sha512-H9q/E1XizaWstJxUW881dmLxEj+t/TrGGnyxINkm4+sK0qUwsMtFdo2BWI9Vs3cIS19MU6b6iCijoUoEf4f3DA==}
+    engines: {node: '>=16.9.0'}
 
   is-extglob@2.1.1:
     resolution: {integrity: sha512-SbKbANkN603Vi4jEZv49LeVJMn4yGwsbzZworEoyEiutsN3nJYdbO36zfhGJ6QEDpOZIFkDtnq5JRxmvl3jsoQ==}
@@ -1784,6 +1803,10 @@ snapshots:
 
   '@fontsource-variable/inter@5.3.0': {}
 
+  '@hono/node-server@1.19.19(hono@4.13.18)':
+    dependencies:
+      hono: 4.13.18
+
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
@@ -2199,6 +2222,8 @@ snapshots:
       events: 3.3.0
       graphology-types: 0.24.8
       obliterator: 2.0.5
+
+  hono@4.13.18: {}
 
   is-extglob@2.1.1: {}
 

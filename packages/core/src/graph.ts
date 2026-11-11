@@ -14,6 +14,8 @@ export interface GraphNode {
   description?: string;
   tags: string[];
   file?: string;
+  /** Present and true when the service is frozen against edits. */
+  locked?: boolean;
   ghost: boolean;
   inDegree: number;
   outDegree: number;
@@ -60,6 +62,7 @@ export function buildGraph(c: Catalog, now: Date = new Date()): GraphJson {
       description: s.description,
       tags: s.tags,
       file: s.file,
+      ...(s.locked ? { locked: true } : {}),
       ghost: false,
       inDegree: 0,
       outDegree: 0,

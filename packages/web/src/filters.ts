@@ -60,3 +60,12 @@ export function countByKind(g: GraphJson): Record<string, number> {
   for (const n of g.nodes) out[n.kind] = (out[n.kind] ?? 0) + 1;
   return out;
 }
+
+/** After the graph reloads: keep the user's choices, and show kinds and groups that did not exist before. */
+export function refreshFilters(prev: GraphJson, next: GraphJson, f: FilterState): FilterState {
+  const known = initialFilters(prev);
+  const fresh = initialFilters(next);
+  const kinds = new Set([...fresh.kinds].filter((k) => f.kinds.has(k) || !known.kinds.has(k)));
+  const groups = new Set([...fresh.groups].filter((g) => f.groups.has(g) || !known.groups.has(g)));
+  return { ...f, kinds, groups };
+}

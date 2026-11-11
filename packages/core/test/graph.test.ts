@@ -46,6 +46,12 @@ describe('buildGraph', () => {
     expect(buildGraph(c, now)).toEqual(g);
   });
 
+  it('flags locked services only', () => {
+    const g = buildGraph(makeCatalog([{ id: 'a', locked: true }, { id: 'b' }]), now);
+    expect(g.nodes[0]!.locked).toBe(true);
+    expect('locked' in g.nodes[1]!).toBe(false);
+  });
+
   it('maps service fields onto nodes', () => {
     const g = buildGraph(makeCatalog([{ id: 'a', name: 'Autorização Core', group: 'identity', tags: ['pii'] }]), now);
     expect(g.nodes[0]).toMatchObject({ id: 'a', label: 'Autorização Core', group: 'identity', tags: ['pii'], ghost: false, file: 'services/a.yaml' });
