@@ -5,6 +5,6 @@ export default defineConfig({
   format: ['esm'],
   target: 'node20',
   clean: true,
-  external: ['@apimap/core', '@apimap/web'],
+  external: ['@apimap/core', '@apimap/scanners', '@apimap/web'],
   banner: { js: '#!/usr/bin/env node' },
 });

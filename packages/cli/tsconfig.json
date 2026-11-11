@@ -2,7 +2,10 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "noEmit": true,
-    "paths": { "@apimap/core": ["../core/src/index.ts"] }
+    "paths": {
+      "@apimap/core": ["../core/src/index.ts"],
+      "@apimap/scanners": ["../scanners/src/index.ts"]
+    }
   },
   "include": ["src", "test"]
 }
