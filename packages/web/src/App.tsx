@@ -115,7 +115,7 @@ export function App() {
     try {
       const canvas = composeLayers(layers, {
         background: themeBackground(theme),
-        glow: theme === 'nebula' ? ['rgba(14, 116, 144, 0.28)', 'rgba(29, 78, 216, 0.22)', 'rgba(190, 24, 93, 0.10)'] : null,
+        glow: theme === 'nebula' ? ['rgba(14, 116, 144, 0.14)', 'rgba(29, 78, 216, 0.11)', 'rgba(190, 24, 93, 0.05)'] : null,
         caption: `${graph.name} · ${new Date().toLocaleDateString()} · apimap`,
         captionColor: theme === 'paper' ? 'rgba(28, 35, 51, 0.6)' : 'rgba(230, 235, 244, 0.6)',
       });

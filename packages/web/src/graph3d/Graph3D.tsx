@@ -33,8 +33,8 @@ const endId = (end: Node3D | string) => (typeof end === 'string' ? end : end.id)
 const linkLit = (lit: Set<string> | null, l: LiveLink) => !lit || (lit.has(endId(l.source)) && lit.has(endId(l.target)));
 
 const DIM = { nebula: 'rgba(100,116,139,0.25)', paper: 'rgba(148,163,184,0.35)' } as const;
-/** Bloom brightens everything, so on a light background it would wash the scene to white. */
-const BLOOM = { nebula: 0.75, paper: 0 } as const;
+/** Bloom glow. Off by default: it lifts the whole background and reads as neon rather than professional. */
+const BLOOM = { nebula: 0, paper: 0 } as const;
 
 export function supportsWebGL(): boolean {
   try {
@@ -124,15 +124,15 @@ export function Graph3D({ graph, visible, query, selection, theme, controllerRef
           .showNavInfo(false)
           .nodeId('id')
           .nodeVal('val')
-          .nodeOpacity(0.95)
+          .nodeOpacity(0.9)
           .nodeResolution(16)
           .nodeLabel((n: Node3D) => labelElement(n.label, theme))
           .linkWidth((l: Link3D) => (l.confidence === 'confirmed' ? 1.2 : 0.5))
-          .linkOpacity(theme === 'paper' ? 0.55 : 0.4)
+          .linkOpacity(theme === 'paper' ? 0.5 : 0.3)
           .linkCurvature(0.12)
           .linkDirectionalArrowLength(3.5)
           .linkDirectionalArrowRelPos(1)
-          .linkDirectionalParticleWidth(1.8)
+          .linkDirectionalParticleWidth(1.1)
           .linkDirectionalParticleSpeed(0.006)
           .onNodeHover((n: Node3D | null) => {
             hoveredRef.current = n?.id ?? null;
@@ -144,7 +144,7 @@ export function Graph3D({ graph, visible, query, selection, theme, controllerRef
 
         if (BLOOM[theme] > 0) {
           const size = new THREE.Vector2(container.clientWidth, container.clientHeight);
-          fg.postProcessingComposer().addPass(new UnrealBloomPass(size, BLOOM[theme], 0.5, 0.15));
+          fg.postProcessingComposer().addPass(new UnrealBloomPass(size, BLOOM[theme], 0.35, 0.35));
         }
 
         // Frame the whole graph once the layout settles the first time.
