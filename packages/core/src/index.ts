@@ -7,3 +7,5 @@ export * from './resolve.js';
 export * from './merge.js';
 export * from './write.js';
 export * from './stable.js';
+export * from './mermaid.js';
+export * from './diff.js';
