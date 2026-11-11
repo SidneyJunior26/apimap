@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { runBuild, runValidate } from './index.js';
+import { runBuild, runLink, runScan, runValidate } from './index.js';
 
 const program = new Command('apimap').description('Map your APIs as an interactive graph').version('0.1.0');
 
@@ -20,6 +20,34 @@ program
   .option('--web-dist <dir>', 'use a custom web viewer build')
   .action(async (dir: string, opts: { out?: string; webDist?: string }) => {
     process.exitCode = await runBuild(dir, opts);
+  });
+
+const collect = (value: string, previous: string[] = []) => [...previous, value];
+
+program
+  .command('scan')
+  .description('discover services and dependencies from repositories')
+  .argument('[dir]', 'catalog directory', '.')
+  .option('-s, --source <glob>', 'repository directory glob (repeatable; default: sources in apimap.config.yaml)', collect)
+  .option('--dry-run', 'show what would change without writing')
+  .option('--create-stubs', 'create external services for unresolved hosts')
+  .action(async (dir: string, opts: { source?: string[]; dryRun?: boolean; createStubs?: boolean }) => {
+    process.exitCode = await runScan(dir, opts);
+  });
+
+program
+  .command('link')
+  .description('add or update one dependency (used by AI agent skills)')
+  .argument('<source>', 'service id that makes the call')
+  .argument('<target>', 'service id being called')
+  .option('-d, --dir <dir>', 'catalog directory', '.')
+  .option('-p, --protocol <protocol>', 'http, soap, ws, grpc, graphql, amqp, kafka, sql, ftp...', 'http')
+  .option('-c, --confidence <level>', 'confirmed, inferred or manual', 'inferred')
+  .option('-o, --origin <origin>', 'scan, agent or manual', 'agent')
+  .option('-e, --evidence <file:line>', 'where the call is made (repeatable)', collect)
+  .option('-n, --note <text>', 'short note')
+  .action(async (source: string, target: string, opts: { dir: string; protocol: string; confidence: string; origin: string; evidence?: string[]; note?: string }) => {
+    process.exitCode = await runLink(opts.dir, source, target, opts);
   });
 
 program.parseAsync().catch((err: unknown) => {

@@ -1,0 +1,5 @@
+{
+  "ExtendedData": {
+    "inputs": ["http://billing.acme.internal/BillingService.svc?wsdl"]
+  }
+}

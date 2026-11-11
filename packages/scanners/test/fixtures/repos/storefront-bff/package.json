@@ -1,0 +1,6 @@
+{
+  "name": "@acme/storefront-bff",
+  "description": "Backend for the web store",
+  "repository": "https://github.com/acme/storefront-bff",
+  "dependencies": { "fastify": "^4.0.0", "axios": "^1.0.0" }
+}
