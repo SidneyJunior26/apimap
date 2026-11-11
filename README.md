@@ -25,6 +25,14 @@ O comando `apimap scan` lê os repositórios e atualiza esses arquivos. Ele não
 
 No visualizador, cada tipo de serviço tem uma cor. Partículas andam pelas arestas no sentido da chamada, os grupos (domínios) ganham uma área própria e, ao clicar num serviço, dá para ver quem depende dele (upstream) e do que ele depende (downstream), com a profundidade que você escolher.
 
+### 3D, tema claro e imagem
+
+A barra no canto inferior esquerdo tem três botões além do zoom. "3D" troca para uma visão em três dimensões, pensada para apresentações: os serviços viram esferas com brilho, a câmera gira com o mouse e voa até o serviço selecionado. Filtros, busca e upstream/downstream continuam valendo. O código do 3D só é baixado quando alguém abre esse modo.
+
+"Light" e "Dark" alternam entre o tema escuro e um tema claro em tom de papel, em que as cores dos tipos ficam mais escuras para manter o contraste. "PNG" baixa a visão atual como imagem, com o fundo do tema e o nome do catálogo no rodapé.
+
+O modo e o tema ficam na URL (`?view=3d&theme=paper`), então um link compartilhado abre do mesmo jeito. Sem parâmetros, o tema segue a preferência do sistema. Se o navegador não tiver WebGL, o 3D avisa e volta para o 2D.
+
 ## Início rápido
 
 ```bash
@@ -169,7 +177,7 @@ O repositório tem quatro pacotes: `@apimap/core` (schema, leitura, validação,
 - M1, concluída: catálogo em YAML, validação, site estático e grafo 2D.
 - M2, concluída: `apimap scan` (configuração, OpenAPI, .NET, Node e docker-compose) e skills para agentes de IA.
 - M3, concluída: `apimap serve`, com um editor local para criar, editar e excluir serviços.
-- M4: modo 3D para apresentações, tema claro e exportação em PNG.
+- M4, concluída: modo 3D para apresentações, tema claro e exportação em PNG.
 - M5: botão "Propor mudança" no site publicado, que abre um pull request, catálogos federados e exportação para Mermaid.
 
 ## Licença
