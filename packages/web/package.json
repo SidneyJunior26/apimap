@@ -11,7 +11,8 @@
     "dev:demo": "tsx scripts/demo-graph.ts && vite",
     "build": "vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "e2e": "node e2e/prepare.mjs && playwright test"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.1.0",

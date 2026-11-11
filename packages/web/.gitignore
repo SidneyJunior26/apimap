@@ -1,1 +1,4 @@
 public/graph.json
+e2e/.sites/
+playwright-report/
+test-results/
