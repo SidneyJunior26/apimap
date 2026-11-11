@@ -1,5 +1,5 @@
 import type { Attributes } from 'graphology-types';
-import { NodeCircleProgram } from 'sigma/rendering';
+import { NodeCircleProgram, type NodeProgramType } from 'sigma/rendering';
 
 /** Halo radius as a multiple of the node radius. */
 export const HALO = 2.6;
@@ -44,7 +44,7 @@ void main() {
 `;
 
 // language=GLSL
-const FRAGMENT_SHADER = /* glsl */ `
+const fragmentShader = (intensity: number) => /* glsl */ `
 precision highp float;
 
 varying vec4 v_color;
@@ -63,7 +63,7 @@ void main(void) {
   float border = u_correctionRatio * 2.0;
   float core = 1.0 - smoothstep(v_radius - border, v_radius, d);
   float h = clamp((d - v_radius) / (v_halo - v_radius), 0.0, 1.0);
-  float glow = pow(1.0 - h, 2.6) * 0.42;
+  float glow = pow(1.0 - h, 2.6) * ${intensity.toFixed(2)};
   // Brighter center gives the node a lit, glassy look.
   vec3 lit = mix(v_color.rgb, vec3(1.0), 0.45 * (1.0 - smoothstep(0.0, v_radius * 0.9, d)));
   vec3 rgb = mix(v_color.rgb, lit, core);
@@ -73,13 +73,14 @@ void main(void) {
 }
 `;
 
-/** Circle node with a soft colored halo. Picking only hits the core disc. */
-export class GlowNodeProgram<
-  N extends Attributes = Attributes,
-  E extends Attributes = Attributes,
-  G extends Attributes = Attributes,
-> extends NodeCircleProgram<N, E, G> {
-  override getDefinition() {
-    return { ...super.getDefinition(), VERTEX_SHADER_SOURCE: VERTEX_SHADER, FRAGMENT_SHADER_SOURCE: FRAGMENT_SHADER };
-  }
+/** Circle node with a soft colored halo of the given strength (0..1). Picking only hits the core disc. */
+export function createGlowProgram<N extends Attributes = Attributes, E extends Attributes = Attributes, G extends Attributes = Attributes>(
+  intensity: number,
+): NodeProgramType<N, E, G> {
+  const FRAGMENT_SHADER = fragmentShader(intensity);
+  return class GlowNodeProgram extends NodeCircleProgram<N, E, G> {
+    override getDefinition() {
+      return { ...super.getDefinition(), VERTEX_SHADER_SOURCE: VERTEX_SHADER, FRAGMENT_SHADER_SOURCE: FRAGMENT_SHADER };
+    }
+  };
 }

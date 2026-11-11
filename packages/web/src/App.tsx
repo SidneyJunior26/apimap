@@ -2,6 +2,14 @@ import type { GraphJson } from '@apimap/core';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from './api';
 import { Nebula } from './background/Nebula';
+import { Paper } from './background/Paper';
+import { composeLayers, downloadCanvas, exportFileName } from './export/png';
+import { createViewCache, type GraphController } from './graph/controller';
+import { Toolbar } from './graph/Toolbar';
+import { Graph3D } from './graph3d/Graph3D';
+import { themeBackground } from './theme';
+import { themedGraph } from './themedGraph';
+import { loadStoredViewState, readViewState, storeViewState, writeViewState, type ViewState } from './viewState';
 import { loadGraph } from './data';
 import { DeleteDialog } from './editor/DeleteDialog';
 import { EditorDrawer, type EditorTarget } from './editor/EditorDrawer';
@@ -10,8 +18,15 @@ import { GraphCanvas } from './graph/GraphCanvas';
 import { Sidebar } from './panel/Sidebar';
 import { initialSelection, type Selection } from './state';
 
+const prefersLight = () => window.matchMedia('(prefers-color-scheme: light)').matches;
+
 export function App() {
-  const [graph, setGraph] = useState<GraphJson | null>(null);
+  const [rawGraph, setGraph] = useState<GraphJson | null>(null);
+  const [viewState, setViewState] = useState<ViewState>(() => readViewState(window.location.search, loadStoredViewState(), prefersLight()));
+  const [notice, setNotice] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const controllerRef = useRef<GraphController | null>(null);
+  const viewCache = useRef(createViewCache());
   const [editable, setEditable] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<FilterState | null>(null);
@@ -73,7 +88,36 @@ export function App() {
     return () => events.close();
   }, [editable, reload]);
 
+  const { view, theme } = viewState;
+  const graph = useMemo(() => (rawGraph ? themedGraph(rawGraph, theme) : null), [rawGraph, theme]);
   const visible = useMemo(() => (graph && filters ? applyFilters(graph, filters) : null), [graph, filters]);
+
+  // Theme on <html>, view state in the URL (shareable) and in local storage (remembered).
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    const query = writeViewState(viewState, new URL(window.location.href), prefersLight());
+    window.history.replaceState(null, '', `${window.location.pathname}${query}${window.location.hash}`);
+    storeViewState(viewState);
+  }, [viewState, theme]);
+
+  const exportPng = async () => {
+    const layers = controllerRef.current?.snapshot();
+    if (!graph || !layers?.length) return;
+    setExporting(true);
+    try {
+      const canvas = composeLayers(layers, {
+        background: themeBackground(theme),
+        glow: theme === 'nebula' ? ['rgba(14, 116, 144, 0.28)', 'rgba(29, 78, 216, 0.22)', 'rgba(190, 24, 93, 0.10)'] : null,
+        caption: `${graph.name} · ${new Date().toLocaleDateString()} · apimap`,
+        captionColor: theme === 'paper' ? 'rgba(28, 35, 51, 0.6)' : 'rgba(230, 235, 244, 0.6)',
+      });
+      await downloadCanvas(canvas, exportFileName(graph.name, new Date()));
+    } catch (err) {
+      setNotice(`Could not export the image: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setExporting(false);
+    }
+  };
   const select = (id: string | null) => setSelection((s) => ({ ...s, selectedId: id, focusMode: 'none' }));
 
   const openEdit = async (id: string) => {
@@ -104,7 +148,7 @@ export function App() {
 
   return (
     <div className="app">
-      <Nebula />
+      {theme === 'paper' ? <Paper /> : <Nebula />}
       <main className="stage" aria-label="Dependency graph">
         {graph.nodes.length === 0 ? (
           <div className="state" role="status">
@@ -117,15 +161,53 @@ export function App() {
               </p>
             )}
           </div>
-        ) : (
-          <GraphCanvas
+        ) : view === '3d' ? (
+          <Graph3D
+            key={theme}
             graph={graph}
             visible={visible}
             query={filters.query}
             selection={selection}
+            theme={theme}
+            controllerRef={controllerRef}
             onSelect={select}
+            onUnavailable={(reason) => {
+              setNotice(`${reason} Showing the 2D view.`);
+              setViewState((v) => ({ ...v, view: '2d' }));
+            }}
+          />
+        ) : (
+          <GraphCanvas
+            key={theme}
+            graph={graph}
+            visible={visible}
+            query={filters.query}
+            selection={selection}
+            theme={theme}
+            cache={viewCache.current}
+            controllerRef={controllerRef}
+            onSelect={select}
+          />
+        )}
+        {graph.nodes.length > 0 && (
+          <Toolbar
+            controller={controllerRef}
+            view={view}
+            theme={theme}
+            exporting={exporting}
+            onToggleView={() => setViewState((v) => ({ ...v, view: v.view === '3d' ? '2d' : '3d' }))}
+            onToggleTheme={() => setViewState((v) => ({ ...v, theme: v.theme === 'paper' ? 'nebula' : 'paper' }))}
+            onExport={() => void exportPng()}
             onResetFilters={() => setFilters(initialFilters(graph))}
           />
+        )}
+        {notice && (
+          <div className="notice" role="status">
+            <span>{notice}</span>
+            <button type="button" className="icon-btn" aria-label="Dismiss" onClick={() => setNotice(null)}>
+              ×
+            </button>
+          </div>
         )}
       </main>
       <Sidebar

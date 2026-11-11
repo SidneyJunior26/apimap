@@ -9,6 +9,8 @@ export interface LinksState {
   /** When set, everything outside it is dimmed. */
   highlight: Set<string> | null;
   animate: boolean;
+  /** Light backgrounds need normal blending and stronger lines. */
+  light: boolean;
 }
 
 interface Point { x: number; y: number }
@@ -129,7 +131,8 @@ export class LinksLayer {
       const b = this.viewport(target);
       if (!meta || !a || !b) return;
       const lit = highlight ? highlight.has(source) && highlight.has(target) : null;
-      const alpha = lit === null ? 0.32 : lit ? 0.9 : 0.04;
+      const light = this.state.light;
+      const alpha = lit === null ? (light ? 0.5 : 0.32) : lit ? 0.9 : light ? 0.08 : 0.04;
 
       ctx.strokeStyle = rgba(meta.color, alpha);
       ctx.fillStyle = rgba(meta.color, alpha);
@@ -179,7 +182,7 @@ export class LinksLayer {
     });
 
     ctx.setLineDash([]);
-    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalCompositeOperation = this.state.light ? 'source-over' : 'lighter';
     for (const { p, color, alpha } of particles) {
       ctx.globalAlpha = alpha;
       ctx.drawImage(particleSprite(color), p.x - 6, p.y - 6, 12, 12);
@@ -203,7 +206,7 @@ export class LinksLayer {
       const cx = points.reduce((s, p) => s + p.x, 0) / points.length;
       const cy = points.reduce((s, p) => s + p.y, 0) / points.length;
       const r = Math.max(...points.map((p) => Math.hypot(p.x - cx, p.y - cy))) + 48;
-      const strength = highlight ? 0.03 : 0.09;
+      const strength = (highlight ? 0.03 : 0.09) * (this.state.light ? 1.4 : 1);
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
       grad.addColorStop(0, rgba(color, strength));
       grad.addColorStop(0.7, rgba(color, strength * 0.6));
@@ -214,7 +217,7 @@ export class LinksLayer {
       ctx.fill();
       ctx.font = '600 11px "Inter Variable", system-ui, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillStyle = rgba(color, highlight ? 0.2 : 0.55);
+      ctx.fillStyle = rgba(color, highlight ? 0.25 : this.state.light ? 0.75 : 0.55);
       ctx.fillText(info.label.toUpperCase(), cx, cy - r + 28);
     }
   }
