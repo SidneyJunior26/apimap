@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: policy-grpc
+name: Policy Engine
+kind: grpc
+group: identity
+owner: team-identity
+repo: github.com/acme/policy-grpc
+description: Evaluates access policies.
+tech: [go]
+hosts:
+  - "policy.acme.internal:9090"

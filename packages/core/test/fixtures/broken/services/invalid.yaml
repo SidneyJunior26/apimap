@@ -1,0 +1,6 @@
+id: invalid
+name: Invalid
+kind: core
+dependsOn:
+  - target: a
+    confidence: maybe

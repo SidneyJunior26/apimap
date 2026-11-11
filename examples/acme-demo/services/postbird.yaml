@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: postbird
+name: PostBird
+kind: external
+group: partners
+owner: team-platform
+repo: github.com/acme/postbird
+description: Email and SMS provider (fictional).
+hosts:
+  - api.postbird.example

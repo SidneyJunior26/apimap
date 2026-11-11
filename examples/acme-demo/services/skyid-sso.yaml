@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: skyid-sso
+name: SkyID SSO
+kind: external
+group: partners
+owner: team-identity
+repo: github.com/acme/skyid-sso
+description: Corporate single sign-on (fictional).
+hosts:
+  - login.skyid.example

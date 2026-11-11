@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: payments-events
+name: Payment Events
+kind: queue
+group: payments
+owner: team-payments
+repo: github.com/acme/payments-events
+description: Payment captured/refunded events.
+tech: [kafka]

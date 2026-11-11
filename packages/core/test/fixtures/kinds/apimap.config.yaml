@@ -1,0 +1,4 @@
+kinds:
+  delphi: { label: Delphi, color: '#ff0000' }
+  core: { color: '#00ff00' }
+  bare: {}

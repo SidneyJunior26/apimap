@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: partner-portal-bff
+name: Partner Portal BFF
+kind: bff
+group: partners
+owner: team-partners
+repo: github.com/acme/partner-portal-bff
+description: Self-service portal for resellers.
+tech: [node]
+hosts:
+  - partners.acme.example
+dependsOn:
+  - target: partner-gateway
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/config.ts, line: 6 }]
+  - target: identity-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/config.ts, line: 7 }]

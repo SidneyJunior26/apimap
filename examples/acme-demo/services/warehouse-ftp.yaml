@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: warehouse-ftp
+name: Warehouse FTP
+kind: ftp
+group: logistics
+owner: team-infra
+repo: github.com/acme/warehouse-ftp
+description: File drops exchanged with warehouses.
+hosts:
+  - ftp.acme.internal

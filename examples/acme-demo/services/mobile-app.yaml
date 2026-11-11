@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: mobile-app
+name: Acme Mobile App
+kind: web
+group: commerce
+owner: team-mobile
+repo: github.com/acme/mobile-app
+description: iOS and Android app.
+tech: [react-native]
+dependsOn:
+  - target: mobile-bff
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/api/client.ts, line: 8 }]

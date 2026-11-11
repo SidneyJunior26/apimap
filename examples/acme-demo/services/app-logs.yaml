@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: app-logs
+name: Central Logging
+kind: logs
+group: platform
+owner: team-platform
+repo: github.com/acme/app-logs
+description: Application logs.
+tech: [loki]
+hosts:
+  - logs.acme.internal

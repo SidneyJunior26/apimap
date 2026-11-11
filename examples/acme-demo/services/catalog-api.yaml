@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: catalog-api
+name: Catalog API
+kind: core
+group: commerce
+owner: team-catalog
+repo: github.com/acme/catalog-api
+description: "Products, categories and media."
+tech: [java, spring]
+hosts:
+  - catalog.acme.internal
+dependsOn:
+  - target: catalog-db
+    protocol: sql
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/main/resources/application.yml, line: 6 }]
+  - target: search-graphql
+    protocol: graphql
+    confidence: inferred
+    origin: agent

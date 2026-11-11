@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: customers-api
+name: Cadastro de Clientes
+kind: core
+group: commerce
+owner: team-customers
+repo: github.com/acme/customers-api
+description: Customer records and addresses.
+tech: [java, spring]
+hosts:
+  - customers.acme.internal
+dependsOn:
+  - target: customers-db
+    protocol: sql
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/main/resources/application.yml, line: 8 }]
+  - target: maproute
+    confidence: inferred
+    origin: agent
+    evidence: [{ file: src/main/java/acme/address/Geocoder.java, line: 33 }]
+  - target: audit-logs
+    confidence: manual
+    origin: manual

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: search-index
+name: Search Index
+kind: database
+group: commerce
+owner: team-catalog
+repo: github.com/acme/search-index
+tech: [opensearch]

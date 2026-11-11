@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: search-graphql
+name: Search Graph
+kind: graphql
+group: commerce
+owner: team-catalog
+repo: github.com/acme/search-graphql
+description: Search and facets over the catalog.
+tech: [node, apollo]
+hosts:
+  - search.acme.internal/graphql
+dependsOn:
+  - target: search-index
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/datasources/index.ts, line: 5 }]

@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: cart-api
+name: Cart API
+kind: core
+group: commerce
+owner: team-storefront
+repo: github.com/acme/cart-api
+description: Shopping carts.
+tech: [node]
+hosts:
+  - cart.acme.internal
+dependsOn:
+  - target: session-cache
+    protocol: redis
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: .env.example, line: 3 }]
+  - target: pricing-grpc
+    protocol: grpc
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/pricing.ts, line: 10 }]
