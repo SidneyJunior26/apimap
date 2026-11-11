@@ -1,0 +1,5 @@
+id: a
+name: A
+kind: bff
+dependsOn:
+  - target: b
