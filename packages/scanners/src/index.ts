@@ -3,3 +3,7 @@ export * from './files.js';
 export * from './generic.js';
 export * from './node.js';
 export * from './scan.js';
+export * from './dotnet.js';
+export * from './openapi.js';
+export * from './compose.js';
+export * from './manifest.js';

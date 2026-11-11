@@ -1,9 +1,14 @@
 import { openRepo } from './files.js';
+import { composeScanner } from './compose.js';
+import { dotnetScanner } from './dotnet.js';
 import { genericScanner } from './generic.js';
+import { manifestScanner } from './manifest.js';
 import { nodeScanner } from './node.js';
+import { openapiScanner } from './openapi.js';
 import type { RepoScan, Scanner } from './types.js';
 
-export const DEFAULT_SCANNERS: Scanner[] = [nodeScanner, genericScanner];
+/** Order matters: earlier scanners win when filling name, description and kind. */
+export const DEFAULT_SCANNERS: Scanner[] = [manifestScanner, openapiScanner, dotnetScanner, nodeScanner, composeScanner, genericScanner];
 
 /** Suggests a kind from the repository name when no scanner did. */
 export function kindFromName(name: string): string | undefined {
@@ -28,5 +33,8 @@ export async function scanRepo(dir: string, scanners: Scanner[] = DEFAULT_SCANNE
   acc.hints.tech = [...new Set(acc.hints.tech)];
   acc.hints.hosts = [...new Set(acc.hints.hosts)];
   acc.hints.kind ??= kindFromName(repo.name);
+  // A service calling its own public host is not a dependency.
+  const own = new Set(acc.hints.hosts);
+  acc.references = acc.references.filter((r) => !own.has(r.host));
   return acc;
 }

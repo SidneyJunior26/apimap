@@ -1,0 +1,7 @@
+id: partner-gateway
+name: Partner Gateway
+kind: core
+owner: team-partners
+dependsOn:
+  - target: orders-api
+    note: public order endpoints

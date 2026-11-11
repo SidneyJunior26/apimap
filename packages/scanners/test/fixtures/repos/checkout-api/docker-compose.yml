@@ -1,0 +1,18 @@
+services:
+  checkout-api:
+    build: .
+    environment:
+      CART_URL: http://cart-api:3000
+    depends_on:
+      - checkout-db
+      - rabbitmq
+      - cart-api
+  checkout-db:
+    image: postgres:16
+  rabbitmq:
+    image: rabbitmq:3-management
+  cart-api:
+    image: acme/cart-api:latest
+    depends_on: [redis]
+  redis:
+    image: redis:7
