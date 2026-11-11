@@ -1,7 +1,10 @@
+#!/usr/bin/env node
 import { Command } from 'commander';
+
+declare const __APIMAP_VERSION__: string;
 import { runBuild, runDiff, runExport, runLink, runScan, runServe, runValidate } from './index.js';
 
-const program = new Command('apimap').description('Map your APIs as an interactive graph').version('0.1.0');
+const program = new Command('apimap').description('Map your APIs as an interactive graph').version(__APIMAP_VERSION__);
 
 program
   .command('validate')

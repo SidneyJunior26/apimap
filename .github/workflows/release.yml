@@ -1,0 +1,42 @@
+name: Release
+
+# Publishes the apimap package to npm when a version tag (v0.1.0, v0.2.0, ...) is pushed.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  id-token: write # npm trusted publishing and provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      # Trusted publishing (no token) needs npm 11.5.1 or newer.
+      - run: npm install -g npm@11.21.1
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - name: Check that the tag matches the package version
+        run: |
+          version=$(node -p "require('./packages/cli/package.json').version")
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match packages/cli/package.json version $version"
+            exit 1
+          fi
+      - name: Publish
+        working-directory: packages/cli
+        run: npm publish
+        env:
+          # Optional: only needed until trusted publishing is configured on npmjs.com.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

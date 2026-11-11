@@ -23,6 +23,9 @@ jobs:
       - run: pnpm test
       - run: pnpm build
       - run: pnpm apimap validate examples/acme-demo
+      - name: Check the npm package contents
+        working-directory: packages/cli
+        run: npm pack --dry-run
       - run: pnpm --filter @apimap/web exec playwright install chromium
       - run: pnpm --filter @apimap/web e2e
         env:

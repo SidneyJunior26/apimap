@@ -1,32 +1,71 @@
 {
   "name": "apimap",
   "version": "0.1.0",
-  "description": "Map your APIs as an interactive graph from YAML files in Git",
-  "type": "module",
-  "license": "MIT",
-  "bin": {
-    "apimap": "./dist/index.js"
-  },
-  "files": [
-    "dist"
+  "description": "Interactive map of a company's APIs and how they call each other, built from YAML files in Git",
+  "keywords": [
+    "api",
+    "architecture",
+    "dependency-graph",
+    "service-map",
+    "microservices",
+    "catalog",
+    "graph",
+    "mermaid",
+    "developer-tools"
   ],
+  "homepage": "https://sidneyjunior26.github.io/apimap/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SidneyJunior26/apimap.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/SidneyJunior26/apimap/issues"
+  },
+  "author": "Sidney Junior",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "apimap": "./dist/bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsup",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepack": "node scripts/prepack.mjs"
   },
   "dependencies": {
-    "@apimap/core": "workspace:*",
-    "@apimap/scanners": "workspace:^",
-    "@apimap/web": "workspace:^",
     "@hono/node-server": "^1.13.7",
     "chokidar": "^4.0.1",
     "commander": "^12.1.0",
     "fast-glob": "^3.3.2",
     "hono": "^4.6.14",
-    "picocolors": "^1.1.1"
+    "picocolors": "^1.1.1",
+    "yaml": "^2.6.1",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
-    "tsup": "^8.3.5",
-    "yaml": "^2.6.1"
+    "@apimap/core": "workspace:*",
+    "@apimap/scanners": "workspace:*",
+    "@apimap/web": "workspace:*",
+    "tsup": "^8.3.5"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }
