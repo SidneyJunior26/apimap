@@ -98,6 +98,21 @@ describe('runScan', () => {
     expect(targets(await read(dir, 'services/orders-api.yaml'))).toContain('mq-acme-internal:amqp:scan');
   });
 
+  it('never stubs hosts from internal domains', async () => {
+    const dir = await seed();
+    await writeFile(path.join(dir, 'apimap.config.yaml'), `sources:\n  - ${REPOS}/*\nscan:\n  internalDomains: [acme.internal, '*.corp.example']\n`);
+    expect(await runScan(dir, { createStubs: true, source: [`${REPOS}/orders-api`] })).toBe(0);
+    const files = await readdir(path.join(dir, 'services'));
+    expect(files.filter((f) => f.includes('acme-internal'))).toEqual([]);
+    expect(out.join('\n')).toMatch(/internal hosts without an owner[\s\S]*mq\.acme\.internal/);
+  });
+
+  it('accepts internal domains from the command line', async () => {
+    const dir = await seed();
+    expect(await runScan(dir, { createStubs: true, internalDomain: ['acme.internal'], source: [`${REPOS}/orders-api`] })).toBe(0);
+    expect((await readdir(path.join(dir, 'services'))).filter((f) => f.includes('acme-internal'))).toEqual([]);
+  });
+
   it('fails without sources', async () => {
     const dir = await catalog({});
     expect(await runScan(dir, {})).toBe(1);

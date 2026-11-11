@@ -2,6 +2,7 @@ import path from 'node:path';
 import {
   buildHostIndex,
   edgeKey,
+  isInternalHost,
   loadCatalog,
   mergeScan,
   resolveHost,
@@ -23,8 +24,10 @@ export interface ScanOptions {
   /** Repository directory globs; defaults to `sources` in apimap.config.yaml. Relative to the catalog. */
   source?: string[];
   dryRun?: boolean;
-  /** Create `external` services for unresolved hosts that look like domains. */
+  /** Create `external` services for unresolved hosts outside the internal domains. */
   createStubs?: boolean;
+  /** Extra internal domains, added to `scan.internalDomains` from the config. */
+  internalDomain?: string[];
 }
 
 const MAX_EVIDENCE = 3;
@@ -88,6 +91,7 @@ export async function runScan(dir: string, opts: ScanOptions): Promise<number> {
     ...assigned.map(({ id, scan }) => ({ id, hosts: [...scan.hints.hosts, ...(scan.declared?.hosts ?? [])] })),
   ]);
 
+  const internalDomains = [...catalog.config.scan.internalDomains, ...(opts.internalDomain ?? [])];
   const unresolved: Unresolved[] = [];
   const stubs = new Map<string, Service>();
   const lines: string[] = [];
@@ -108,7 +112,7 @@ export async function runScan(dir: string, opts: ScanOptions): Promise<number> {
 
     for (const ref of scan.references) {
       let target = resolveHost(index, ref.host, ref.path);
-      if (!target && opts.createStubs && ref.host.includes('.')) {
+      if (!target && opts.createStubs && !isInternalHost(ref.host, internalDomains)) {
         target = stubId(ref.host);
         if (!byId.has(target) && !stubs.has(target)) {
           stubs.set(target, ServiceSchema.parse({ id: target, name: ref.host, kind: 'external', hosts: [ref.host] }));
@@ -152,16 +156,21 @@ export async function runScan(dir: string, opts: ScanOptions): Promise<number> {
 
   console.log(`scanned ${repos.length} repositor${repos.length === 1 ? 'y' : 'ies'}${opts.dryRun ? ' (dry run, nothing written)' : ''}`);
   console.log(lines.join('\n'));
-  if (unresolved.length) {
-    console.log(`\nunresolved hosts (add them to a service's "hosts" or use --create-stubs):`);
+  const printHosts = (title: string, list: Unresolved[]) => {
+    if (!list.length) return;
+    console.log(`\n${title}`);
     const seen = new Set<string>();
-    for (const u of unresolved) {
+    for (const u of list) {
       const key = `${u.host}:${u.protocol}:${u.from}`;
       if (seen.has(key)) continue;
       seen.add(key);
       console.log(`  ${u.host} ${pc.dim(`(${u.protocol}) from ${u.from} at ${u.evidence.file}${u.evidence.line ? `:${u.evidence.line}` : ''}`)}`);
     }
-  }
+  };
+  const internal = unresolved.filter((u) => isInternalHost(u.host, internalDomains));
+  const external = unresolved.filter((u) => !isInternalHost(u.host, internalDomains));
+  printHosts(`internal hosts without an owner (add them to the "hosts" of the service that serves them):`, internal);
+  printHosts(`unresolved external hosts (add them to a service's "hosts" or use --create-stubs):`, external);
   if (!opts.dryRun) {
     console.log(`\n${written} file${written === 1 ? '' : 's'} written`);
     const { diagnostics: after } = await loadAndValidate(root);

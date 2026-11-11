@@ -68,3 +68,18 @@ export function resolveHost(index: HostIndex, host: string, path: string): strin
   }
   return index.ids.has(h) ? h : null;
 }
+
+/**
+ * True when `host` belongs to one of the internal domains. `acme.internal` matches itself and subdomains;
+ * `*.acme.internal` matches subdomains only. Single-label hosts (docker-compose names) are always internal.
+ */
+export function isInternalHost(host: string, internalDomains: string[]): boolean {
+  const h = host.trim().toLowerCase();
+  if (!h.includes('.')) return true;
+  return internalDomains.some((raw) => {
+    const d = raw.trim().toLowerCase();
+    if (!d) return false;
+    if (d.startsWith('*.')) return h.endsWith(d.slice(1));
+    return h === d || h.endsWith(`.${d}`);
+  });
+}

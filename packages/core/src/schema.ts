@@ -53,6 +53,12 @@ export const ConfigSchema = z.object({
   sources: z.array(z.string()).default([]),
   kinds: z.record(KindOverrideSchema).default({}),
   groups: z.record(GroupSchema).default({}),
+  scan: z
+    .object({
+      /** Domains owned by the company (e.g. `acme.internal`, `*.corp.example`). Unresolved hosts in them are never stubbed as external. */
+      internalDomains: z.array(z.string()).default([]),
+    })
+    .default({}),
 });
 
 export type Confidence = z.infer<typeof ConfidenceSchema>;
