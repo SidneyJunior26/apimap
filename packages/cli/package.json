@@ -1,0 +1,25 @@
+{
+  "name": "apimap",
+  "version": "0.1.0",
+  "description": "Map your APIs as an interactive graph from YAML files in Git",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "apimap": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@apimap/core": "workspace:*",
+    "commander": "^12.1.0",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.5"
+  }
+}
