@@ -72,6 +72,41 @@
           },
           "additionalProperties": false,
           "default": {}
+        },
+        "edit": {
+          "anyOf": [
+            {
+              "type": "boolean",
+              "const": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "provider": {
+                  "type": "string",
+                  "const": "github",
+                  "default": "github"
+                },
+                "repo": {
+                  "type": "string",
+                  "pattern": "^[\\w.-]+\\/[\\w.-]+$"
+                },
+                "branch": {
+                  "type": "string",
+                  "minLength": 1,
+                  "default": "main"
+                },
+                "path": {
+                  "type": "string",
+                  "default": ""
+                }
+              },
+              "required": [
+                "repo"
+              ],
+              "additionalProperties": false
+            }
+          ]
         }
       },
       "additionalProperties": false

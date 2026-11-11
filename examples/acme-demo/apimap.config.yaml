@@ -1,5 +1,7 @@
 # yaml-language-server: $schema=../../packages/core/schema/config.schema.json
 name: Acme API Map
+# Demo only: keeps the published site from linking proposals to this repository.
+edit: false
 kinds:
   delphi:
     label: Delphi app

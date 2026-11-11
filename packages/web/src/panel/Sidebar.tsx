@@ -1,7 +1,7 @@
 import type { GraphJson } from '@apimap/core';
 import { useState } from 'react';
 import type { FilterState, Visible } from '../filters';
-import type { Selection } from '../state';
+import { EDIT_LABELS, type EditMode, type Selection } from '../state';
 import { Filters } from './Filters';
 import { Legend } from './Legend';
 import { NodeDetail } from './NodeDetail';
@@ -12,7 +12,7 @@ interface Props {
   filters: FilterState;
   visible: Visible;
   selection: Selection;
-  editable: boolean;
+  editMode: EditMode;
   onFiltersChange: (f: FilterState) => void;
   onSelectionChange: (s: Selection) => void;
   onCreate: (id?: string) => void;
@@ -20,7 +20,7 @@ interface Props {
   onDelete: (id: string) => void;
 }
 
-export function Sidebar({ graph, filters, visible, selection, editable, onFiltersChange, onSelectionChange, onCreate, onEdit, onDelete }: Props) {
+export function Sidebar({ graph, filters, visible, selection, editMode, onFiltersChange, onSelectionChange, onCreate, onEdit, onDelete }: Props) {
   const [open, setOpen] = useState(true);
   const select = (id: string | null) => onSelectionChange({ ...selection, selectedId: id, focusMode: 'none' });
 
@@ -32,9 +32,9 @@ export function Sidebar({ graph, filters, visible, selection, editable, onFilter
       <header className="sidebar__header">
         <div className="sidebar__title">
           <h1>{graph.name}</h1>
-          {editable && (
+          {editMode && (
             <button type="button" className="chip chip--on" onClick={() => onCreate()}>
-              New service
+              {EDIT_LABELS[editMode].create}
             </button>
           )}
         </div>
@@ -46,7 +46,7 @@ export function Sidebar({ graph, filters, visible, selection, editable, onFilter
       <NodeDetail
         graph={graph}
         selection={selection}
-        editable={editable}
+        editMode={editMode}
         onSelectionChange={onSelectionChange}
         onSelect={select}
         onCreate={onCreate}

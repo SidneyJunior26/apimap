@@ -9,6 +9,7 @@ rmSync(here('./.sites'), { recursive: true, force: true });
 for (const [catalog, out] of [
   ['../../../examples/acme-demo', './.sites/acme'],
   ['./fixtures/empty', './.sites/empty'],
+  ['./fixtures/propose', './.sites/propose'],
 ]) {
   execFileSync(process.execPath, [cli, 'build', here(catalog), '-o', here(out)], { stdio: 'inherit' });
 }

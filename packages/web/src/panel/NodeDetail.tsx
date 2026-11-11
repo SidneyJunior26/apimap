@@ -1,10 +1,10 @@
 import type { GraphEdge, GraphJson } from '@apimap/core';
-import type { FocusMode, Selection } from '../state';
+import { EDIT_LABELS, type EditMode, type FocusMode, type Selection } from '../state';
 
 interface Props {
   graph: GraphJson;
   selection: Selection;
-  editable: boolean;
+  editMode: EditMode;
   onSelectionChange: (s: Selection) => void;
   onSelect: (id: string | null) => void;
   onCreate: (id?: string) => void;
@@ -57,7 +57,7 @@ function DependencyList({ title, edges, side, graph, onSelect }: { title: string
   );
 }
 
-export function NodeDetail({ graph, selection, editable, onSelectionChange, onSelect, onCreate, onEdit, onDelete }: Props) {
+export function NodeDetail({ graph, selection, editMode, onSelectionChange, onSelect, onCreate, onEdit, onDelete }: Props) {
   const node = graph.nodes.find((n) => n.id === selection.selectedId);
   if (!node) {
     return (
@@ -86,21 +86,21 @@ export function NodeDetail({ graph, selection, editable, onSelectionChange, onSe
         {node.ghost && <span className="badge badge--ghost">not in catalog</span>}
         <code className="muted">{node.id}</code>
       </p>
-      {editable && (
+      {editMode && (
         <div className="detail__actions">
           {node.ghost ? (
             <button type="button" className="chip" onClick={() => onCreate(node.id)}>
-              Add to catalog
+              {EDIT_LABELS[editMode].addGhost}
             </button>
           ) : node.locked ? (
             <span className="muted small">Locked: edit the YAML file to change it.</span>
           ) : (
             <>
               <button type="button" className="chip" onClick={() => onEdit(node.id)}>
-                Edit
+                {EDIT_LABELS[editMode].edit}
               </button>
               <button type="button" className="chip chip--danger" onClick={() => onDelete(node.id)}>
-                Delete
+                {EDIT_LABELS[editMode].remove}
               </button>
             </>
           )}

@@ -1,15 +1,17 @@
 import type { GraphJson } from '@apimap/core';
 import { useEffect, useRef, useState } from 'react';
-import { api } from '../api';
 
 interface Props {
   graph: GraphJson;
   id: string;
+  /** Deletes through the local API, or opens GitHub's delete page in proposal mode. */
+  onConfirm: () => Promise<void>;
+  confirmLabel?: string;
+  description?: string;
   onCancel: () => void;
-  onDeleted: () => void;
 }
 
-export function DeleteDialog({ graph, id, onCancel, onDeleted }: Props) {
+export function DeleteDialog({ graph, id, onConfirm, confirmLabel = 'Delete service', description, onCancel }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -25,8 +27,7 @@ export function DeleteDialog({ graph, id, onCancel, onDeleted }: Props) {
   const confirm = async () => {
     setBusy(true);
     try {
-      await api.remove(id);
-      onDeleted();
+      await onConfirm();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setBusy(false);
@@ -36,9 +37,7 @@ export function DeleteDialog({ graph, id, onCancel, onDeleted }: Props) {
   return (
     <dialog ref={ref} className="confirm" aria-labelledby="delete-title" onCancel={(e) => (e.preventDefault(), onCancel())}>
       <h2 id="delete-title">Delete {node?.label ?? id}?</h2>
-      <p>
-        This removes <code>{node?.file ?? `services/${id}.yaml`}</code> from the catalog.
-      </p>
+      <p>{description ?? <>This removes <code>{node?.file ?? `services/${id}.yaml`}</code> from the catalog.</>}</p>
       {dependents.length > 0 && (
         <p>
           {dependents.length} {dependents.length === 1 ? 'service depends' : 'services depend'} on it ({dependents.join(', ')}). Their links will point to a ghost node until you
@@ -55,7 +54,7 @@ export function DeleteDialog({ graph, id, onCancel, onDeleted }: Props) {
           Cancel
         </button>
         <button type="button" className="chip chip--danger" onClick={confirm} disabled={busy}>
-          {busy ? 'Deleting…' : 'Delete service'}
+          {busy ? 'Working…' : confirmLabel}
         </button>
       </div>
     </dialog>

@@ -9,3 +9,4 @@ export * from './write.js';
 export * from './stable.js';
 export * from './mermaid.js';
 export * from './diff.js';
+export * from './serialize.js';

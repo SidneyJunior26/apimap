@@ -57,3 +57,11 @@ describe('buildGraph', () => {
     expect(g.nodes[0]).toMatchObject({ id: 'a', label: 'Autorização Core', group: 'identity', tags: ['pii'], ghost: false, file: 'services/a.yaml' });
   });
 });
+
+describe('buildGraph edit target', () => {
+  it('includes the edit target only when given', () => {
+    const c = makeCatalog([{ id: 'a' }]);
+    expect('edit' in buildGraph(c, now)).toBe(false);
+    expect(buildGraph(c, now, { edit: { provider: 'github', repo: 'acme/catalog', branch: 'main', path: 'map' } }).edit).toEqual({ provider: 'github', repo: 'acme/catalog', branch: 'main', path: 'map' });
+  });
+});

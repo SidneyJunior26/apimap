@@ -1,7 +1,8 @@
-import { cp, mkdir, writeFile } from 'node:fs/promises';
+import { cp, mkdir, realpath, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildGraph } from '@apimap/core';
+import { buildGraph, type Config, type EditTarget } from '@apimap/core';
+import { defaultBranch, git, parseGithubRemote, posix, repoRoot } from '../git.js';
 import { formatDiagnostics } from '../report.js';
 import { loadAndValidate } from './check.js';
 
@@ -20,6 +21,24 @@ export function resolveWebDist(): string {
   }
 }
 
+/** Where "propose change" links should point: the config, else the GitHub origin remote, else nowhere. */
+export async function resolveEditTarget(catalogDir: string, config: Config): Promise<EditTarget | undefined> {
+  if (config.edit === false) return undefined;
+  if (config.edit) return config.edit;
+  const root = await repoRoot(catalogDir);
+  if (!root) return undefined;
+  let remote: string;
+  try {
+    remote = await git(root, ['remote', 'get-url', 'origin']);
+  } catch {
+    return undefined;
+  }
+  const repo = parseGithubRemote(remote);
+  if (!repo) return undefined;
+  const rel = posix(path.relative(await realpath(root), await realpath(catalogDir)));
+  return { provider: 'github', repo, branch: await defaultBranch(root), path: rel };
+}
+
 /** Returns the process exit code. Writes nothing when the catalog has errors. */
 export async function runBuild(dir: string, opts: BuildOptions): Promise<number> {
   const root = path.resolve(dir);
@@ -33,7 +52,7 @@ export async function runBuild(dir: string, opts: BuildOptions): Promise<number>
   const webDist = opts.webDist ?? resolveWebDist();
   await mkdir(out, { recursive: true });
   await cp(webDist, out, { recursive: true });
-  const graph = buildGraph(catalog);
+  const graph = buildGraph(catalog, new Date(), { edit: await resolveEditTarget(root, catalog.config) });
   await writeFile(path.join(out, 'graph.json'), `${JSON.stringify(graph)}\n`);
   console.log(`built ${graph.nodes.length} nodes, ${graph.edges.length} edges -> ${out}`);
   return 0;

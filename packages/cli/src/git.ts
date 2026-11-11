@@ -59,3 +59,25 @@ export async function extractAt(root: string, ref: string, relPath: string, dest
 }
 
 export const posix = (p: string) => p.split(path.sep).join('/');
+
+/** `owner/name` for GitHub remotes (https or ssh), otherwise null. */
+export function parseGithubRemote(url: string): string | null {
+  const m = /^(?:https?:\/\/(?:[^@/]+@)?github\.com\/|git@github\.com:|ssh:\/\/git@github\.com\/)([\w.-]+\/[\w.-]+?)(?:\.git)?\/?$/.exec(url.trim());
+  return m ? m[1]! : null;
+}
+
+/** Default branch of origin, else the current branch, else "main". */
+export async function defaultBranch(root: string): Promise<string> {
+  try {
+    return (await git(root, ['symbolic-ref', '--short', 'refs/remotes/origin/HEAD'])).replace(/^origin\//, '');
+  } catch {
+    // no origin/HEAD (fresh or shallow clone)
+  }
+  try {
+    const current = await git(root, ['symbolic-ref', '--short', 'HEAD']);
+    if (current) return current;
+  } catch {
+    // detached HEAD
+  }
+  return process.env.GITHUB_REF_NAME && !process.env.GITHUB_REF_NAME.includes('/') ? process.env.GITHUB_REF_NAME : 'main';
+}
