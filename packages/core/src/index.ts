@@ -4,3 +4,6 @@ export * from './load.js';
 export * from './validate.js';
 export * from './graph.js';
 export * from './resolve.js';
+export * from './merge.js';
+export * from './write.js';
+export * from './stable.js';
