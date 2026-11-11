@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: orders-api
+name: Orders API
+kind: core
+group: commerce
+owner: team-orders
+repo: github.com/acme/orders-api
+description: Order lifecycle.
+tech: [dotnet8]
+hosts:
+  - orders.acme.internal
+dependsOn:
+  - target: payments-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: appsettings.json, line: 12 }]
+  - target: inventory-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: appsettings.json, line: 13 }]
+  - target: shipping-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: appsettings.json, line: 14 }]
+  - target: orders-events
+    protocol: amqp
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: appsettings.json, line: 22 }]
+  - target: orders-db
+    protocol: sql
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: appsettings.json, line: 5 }]
+  - target: audit-logs
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: appsettings.json, line: 30 }]

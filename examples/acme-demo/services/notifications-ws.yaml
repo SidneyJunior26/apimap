@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: notifications-ws
+name: Notifications Socket
+kind: websocket
+group: platform
+owner: team-platform
+repo: github.com/acme/notifications-ws
+description: Pushes in-app notifications.
+tech: [node]
+hosts:
+  - ws.acme.example

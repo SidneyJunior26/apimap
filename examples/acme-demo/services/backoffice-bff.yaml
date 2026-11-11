@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: backoffice-bff
+name: Backoffice BFF
+kind: bff
+group: platform
+owner: team-backoffice
+repo: github.com/acme/backoffice-bff
+description: Backend for the operations console.
+tech: [dotnet8]
+hosts:
+  - backoffice-bff.acme.internal
+dependsOn:
+  - target: orders-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: appsettings.json, line: 10 }]
+  - target: customers-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: appsettings.json, line: 11 }]
+  - target: identity-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: appsettings.json, line: 12 }]
+  - target: reports-legacy
+    protocol: soap
+    confidence: manual
+    origin: manual
+  - target: refunds-worker
+    protocol: amqp
+    confidence: inferred
+    origin: agent
+    evidence: [{ file: src/Refunds/RefundPublisher.cs, line: 19 }]

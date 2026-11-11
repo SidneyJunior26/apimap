@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: session-cache
+name: Session Cache
+kind: database
+group: commerce
+owner: team-storefront
+repo: github.com/acme/session-cache
+tech: [redis]

@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: edi-legacy
+name: EDI Bridge
+kind: legacy
+group: partners
+owner: team-partners
+repo: github.com/acme/edi-legacy
+description: Exchanges EDI files with large partners.
+tech: [cobol]
+dependsOn:
+  - target: warehouse-ftp
+    protocol: ftp
+    confidence: manual
+    origin: manual
+  - target: orders-db
+    protocol: sql
+    confidence: manual
+    origin: manual

@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: riskshield
+name: RiskShield
+kind: external
+group: partners
+owner: team-payments
+repo: github.com/acme/riskshield
+description: Fraud scoring (fictional).
+hosts:
+  - api.riskshield.example

@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: autorizacao-core
+name: Autorização Core
+kind: core
+group: identity
+owner: team-identity
+repo: github.com/acme/autorizacao-core
+description: Fine-grained authorization decisions.
+tech: [dotnet8]
+hosts:
+  - authz.acme.internal
+dependsOn:
+  - target: identity-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: appsettings.json, line: 9 }]
+  - target: policy-grpc
+    protocol: grpc
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/Policy/PolicyClient.cs, line: 14 }]

@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: storefront-web
+name: Storefront
+kind: web
+group: commerce
+owner: team-storefront
+repo: github.com/acme/storefront-web
+description: Public online store.
+tech: [react, nextjs]
+hosts:
+  - www.acme.example
+dependsOn:
+  - target: storefront-bff
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/lib/api.ts, line: 12 }]

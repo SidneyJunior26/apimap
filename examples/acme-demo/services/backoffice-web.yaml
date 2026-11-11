@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: backoffice-web
+name: Backoffice
+kind: web
+group: platform
+owner: team-backoffice
+repo: github.com/acme/backoffice-web
+description: Internal operations console.
+tech: [angular]
+hosts:
+  - admin.acme.example
+dependsOn:
+  - target: backoffice-bff
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/environments/environment.ts, line: 4 }]

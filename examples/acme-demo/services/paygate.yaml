@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: paygate
+name: Paygate
+kind: external
+group: partners
+owner: team-payments
+repo: github.com/acme/paygate
+description: Card acquirer (fictional).
+hosts:
+  - api.paygate.example

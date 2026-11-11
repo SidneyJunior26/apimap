@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: maproute
+name: MapRoute
+kind: external
+group: partners
+owner: team-logistics
+repo: github.com/acme/maproute
+description: Maps and geocoding (fictional).
+hosts:
+  - api.maproute.example

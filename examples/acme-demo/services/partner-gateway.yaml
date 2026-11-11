@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: partner-gateway
+name: Partner Gateway
+kind: core
+group: partners
+owner: team-partners
+repo: github.com/acme/partner-gateway
+description: Public API for resellers.
+tech: [kong]
+hosts:
+  - api.acme.example/partners
+dependsOn:
+  - target: orders-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: kong.yaml, line: 12 }]
+  - target: catalog-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: kong.yaml, line: 20 }]

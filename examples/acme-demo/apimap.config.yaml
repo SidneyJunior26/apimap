@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=../../packages/core/schema/config.schema.json
+name: Acme API Map
+kinds:
+  delphi:
+    label: Delphi app
+    color: '#fb7185'
+    shape: square
+groups:
+  identity: { label: Identity & Access, color: '#38bdf8' }
+  commerce: { label: Commerce, color: '#34d399' }
+  payments: { label: Payments, color: '#facc15' }
+  logistics: { label: Logistics, color: '#fb923c' }
+  platform: { label: Platform, color: '#a78bfa' }
+  partners: { label: Partners & Vendors, color: '#f472b6' }

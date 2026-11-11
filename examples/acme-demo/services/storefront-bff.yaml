@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: storefront-bff
+name: Storefront BFF
+kind: bff
+group: commerce
+owner: team-storefront
+repo: github.com/acme/storefront-bff
+description: "Aggregates catalog, cart and identity for the web store."
+tech: [node, fastify]
+hosts:
+  - storefront-bff.acme.internal
+dependsOn:
+  - target: catalog-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/clients/catalog.ts, line: 15 }]
+  - target: cart-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/clients/cart.ts, line: 9 }]
+  - target: identity-api
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/clients/identity.ts, line: 11 }]
+  - target: search-graphql
+    protocol: graphql
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/clients/search.ts, line: 7 }]
+  - target: notifications-ws
+    protocol: ws
+    confidence: inferred
+    origin: agent
+    evidence: [{ file: src/realtime/socket.ts, line: 22 }]
+  - target: app-logs
+    confidence: inferred
+    origin: agent

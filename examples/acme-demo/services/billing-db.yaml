@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: billing-db
+name: Billing DB
+kind: database
+group: payments
+owner: team-billing
+repo: github.com/acme/billing-db
+tech: [oracle]

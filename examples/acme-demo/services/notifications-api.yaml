@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: notifications-api
+name: Notifications API
+kind: core
+group: platform
+owner: team-platform
+repo: github.com/acme/notifications-api
+description: "Email, SMS and push."
+tech: [node]
+hosts:
+  - notify.acme.internal
+dependsOn:
+  - target: postbird
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/providers/email.ts, line: 5 }]
+  - target: notifications-ws
+    protocol: ws
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: src/push.ts, line: 11 }]

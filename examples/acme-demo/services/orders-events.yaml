@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: orders-events
+name: Order Events
+kind: queue
+group: commerce
+owner: team-orders
+repo: github.com/acme/orders-events
+description: Order created/paid/shipped events.
+tech: [rabbitmq]

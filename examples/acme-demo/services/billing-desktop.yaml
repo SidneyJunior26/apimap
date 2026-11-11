@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: billing-desktop
+name: Billing Desktop
+kind: delphi
+group: payments
+owner: team-billing
+repo: github.com/acme/billing-desktop
+description: Desktop app used by the finance team.
+tech: [delphi]
+dependsOn:
+  - target: legacy-billing-ws
+    protocol: soap
+    confidence: manual
+    origin: manual
+  - target: billing-db
+    protocol: sql
+    confidence: manual
+    origin: manual

@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: audit-logs
+name: Audit Log Store
+kind: logs
+group: platform
+owner: team-platform
+repo: github.com/acme/audit-logs
+description: Immutable audit trail.
+tech: [elasticsearch]
+hosts:
+  - audit.acme.internal

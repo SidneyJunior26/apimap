@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: orders-db
+name: Orders DB
+kind: database
+group: commerce
+owner: team-orders
+repo: github.com/acme/orders-db
+tech: [sqlserver]

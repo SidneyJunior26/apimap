@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: invoice-worker
+name: Invoice Worker
+kind: worker
+group: payments
+owner: team-billing
+repo: github.com/acme/invoice-worker
+description: Issues invoices from payment events.
+tech: [python]
+dependsOn:
+  - target: payments-events
+    protocol: kafka
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: worker/settings.py, line: 12 }]
+  - target: tax-authority-api
+    confidence: inferred
+    origin: agent
+    evidence: [{ file: worker/tax.py, line: 40 }]
+  - target: postbird
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: worker/settings.py, line: 20 }]

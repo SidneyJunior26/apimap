@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json
+id: legacy-billing-ws
+name: Faturamento Legado
+kind: webservice
+group: payments
+owner: team-billing
+repo: github.com/acme/legacy-billing-ws
+description: SOAP billing service from the old platform.
+tech: [dotnet-framework, wcf]
+hosts:
+  - billing.acme.internal/BillingService.svc
+dependsOn:
+  - target: billing-db
+    protocol: sql
+    confidence: confirmed
+    origin: scan
+    evidence: [{ file: Web.config, line: 18 }]
