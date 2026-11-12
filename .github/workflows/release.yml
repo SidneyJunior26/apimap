@@ -1,6 +1,7 @@
 name: Release
 
-# Publishes the svclens package to npm when a version tag (v0.1.0, v0.2.0, ...) is pushed.
+# When a version tag (v0.1.1, v0.2.0, ...) is pushed, tests the project and stages the package on npm.
+# The version only goes live after the maintainer approves it (npm stage approve), which asks for the passkey.
 on:
   push:
     tags: ['v*']
@@ -21,8 +22,8 @@ jobs:
           node-version: 22
           cache: pnpm
           registry-url: https://registry.npmjs.org
-      # Trusted publishing (no token) needs npm 11.5.1 or newer.
-      - run: npm install -g npm@11.21.1
+      # Trusted publishing and `npm stage` need a recent npm 11.
+      - run: npm install -g npm@11.21.2
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r typecheck
       - run: pnpm test
@@ -34,9 +35,18 @@ jobs:
             echo "Tag $GITHUB_REF_NAME does not match packages/cli/package.json version $version"
             exit 1
           fi
-      - name: Publish
+      - name: Stage on npm
         working-directory: packages/cli
-        run: npm publish
-        env:
-          # Optional: only needed until trusted publishing is configured on npmjs.com.
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm stage publish
+      - name: Next step
+        run: |
+          {
+            echo "### Version staged on npm"
+            echo
+            echo "The version is not public yet. Approve it from a terminal, with your passkey:"
+            echo
+            echo '```bash'
+            echo "npx --yes npm@11.21.2 stage list svclens"
+            echo "npx --yes npm@11.21.2 stage approve <stage-id>"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
