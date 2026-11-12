@@ -8,6 +8,10 @@ export const OriginSchema = z.enum(['scan', 'agent', 'manual']);
 export const EvidenceSchema = z.object({
   file: z.string().min(1),
   line: z.number().int().positive().optional(),
+  /** Configuration key or section that declares the relation, e.g. `connectionStrings.Billing`. Never a value. */
+  key: z.string().min(1).optional(),
+  /** Environment the declaration belongs to, e.g. `Production` for `Web.Production.config`. */
+  env: z.string().min(1).optional(),
 });
 
 export const DependencySchema = z.object({

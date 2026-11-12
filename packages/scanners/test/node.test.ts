@@ -20,8 +20,8 @@ describe('storefront-bff (node + generic)', () => {
 
   it('records evidence with line numbers', async () => {
     const r = await scanRepo(repo('storefront-bff'));
-    expect(r.references.find((x) => x.host === 'catalog.acme.internal')?.evidence).toEqual({ file: '.env.example', line: 1 });
-    expect(r.references.find((x) => x.host === 'search.acme.internal')?.evidence).toEqual({ file: 'config/default.json', line: 4 });
+    expect(r.references.find((x) => x.host === 'catalog.acme.internal')?.evidence).toEqual({ file: '.env.example', line: 1, key: 'CATALOG_URL' });
+    expect(r.references.find((x) => x.host === 'search.acme.internal')?.evidence).toEqual({ file: 'config/default.json', line: 4, key: 'url' });
   });
 
   it('never leaks credentials or unread secrets', async () => {

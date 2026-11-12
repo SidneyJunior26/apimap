@@ -39,11 +39,17 @@ function DependencyList({ title, edges, side, graph, onSelect }: { title: string
               {e.evidence.length > 0 && (
                 <ul className="evidence">
                   {e.evidence.map((ev) => (
-                    <li key={`${ev.file}:${ev.line ?? ''}`}>
+                    <li key={`${ev.file}:${ev.line ?? ''}:${ev.key ?? ''}:${ev.env ?? ''}`}>
                       <code>
                         {ev.file}
                         {ev.line ? `:${ev.line}` : ''}
                       </code>
+                      {(ev.key || ev.env) && (
+                        <span className="muted">
+                          {ev.key ? ` ${ev.key}` : ''}
+                          {ev.env ? ` (${ev.env})` : ''}
+                        </span>
+                      )}
                     </li>
                   ))}
                 </ul>

@@ -7,3 +7,5 @@ export * from './dotnet.js';
 export * from './openapi.js';
 export * from './compose.js';
 export * from './manifest.js';
+export * from './providers.js';
+export * from './configs.js';
