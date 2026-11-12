@@ -1,6 +1,6 @@
 # Changelog
 
-## Não lançado
+## 0.3.0
 
 - Novo campo `role` (`client` ou `server`) nos serviços. O scan marca apps de navegador, desktop e Blazor WebAssembly como `client` e não registra neles relações diretas com banco ou log, que passam por uma camada de servidor. O item vai para o relatório como inconclusivo.
 - `svclens validate` avisa quando um serviço `client` depende direto de banco ou de log (`client-direct-access`).

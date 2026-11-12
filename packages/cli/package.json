@@ -1,6 +1,6 @@
 {
   "name": "svclens",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Interactive map of a company's APIs and how they call each other, built from YAML files in Git",
   "keywords": [
     "api",
