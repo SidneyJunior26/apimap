@@ -1,6 +1,3 @@
-import path from 'node:path';
-import { lineAt } from './files.js';
-import { NOISE_HOSTS } from './generic.js';
 import type { Scanner } from './types.js';
 
 const PACKAGES: Array<[RegExp, string]> = [
@@ -14,10 +11,6 @@ const PACKAGES: Array<[RegExp, string]> = [
   [/^Microsoft\.EntityFrameworkCore/, 'efcore'],
 ];
 
-const CONNECTION_FILE = /(^|\/)(appsettings[^/]*\.json|web\.config|app\.config)$/i;
-/** Host part of ADO.NET-style connection strings. Credentials are never captured. */
-const CONNECTION_HOST = /(?:^|[;"'\s])(?:Server|Data Source|Host|Address|Addr)\s*=\s*(?:tcp:)?([A-Za-z0-9_.-]+)/gi;
-
 export function dotnetTech(framework: string): string | null {
   const f = framework.trim().toLowerCase();
   if (/^v?[1-4]\.\d/.test(f)) return 'dotnet-framework';
@@ -27,7 +20,7 @@ export function dotnetTech(framework: string): string | null {
   return net ? `dotnet${net[1]}` : null;
 }
 
-/** .NET projects: framework, notable packages, kind, and database hosts from connection strings. */
+/** .NET projects: framework, notable packages and kind. Connection strings live in configs.ts. */
 export const dotnetScanner: Scanner = {
   name: 'dotnet',
   async scan(repo, acc) {
@@ -50,14 +43,5 @@ export const dotnetScanner: Scanner = {
       }
     }
     if (!acc.hints.kind && files.some((f) => /\.(svc|asmx)$/i.test(f))) acc.hints.kind = 'webservice';
-
-    for (const file of files.filter((f) => CONNECTION_FILE.test(path.posix.basename(f)) || CONNECTION_FILE.test(f))) {
-      const text = await repo.read(file);
-      for (const m of text.matchAll(CONNECTION_HOST)) {
-        const host = m[1]!.toLowerCase();
-        if (host === '.' || NOISE_HOSTS.has(host)) continue;
-        acc.references.push({ protocol: 'sql', host, path: '', evidence: { file, line: lineAt(text, m.index ?? 0) } });
-      }
-    }
   },
 };

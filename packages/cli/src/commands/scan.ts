@@ -1,3 +1,4 @@
+import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import {
   buildHostIndex,
@@ -14,7 +15,7 @@ import {
   type ScannedDependency,
   type Service,
 } from '@svclens/core';
-import { scanRepo, type RepoScan } from '@svclens/scanners';
+import { kindForProtocol, scanProjects, type RepoScan } from '@svclens/scanners';
 import fg from 'fast-glob';
 import pc from 'picocolors';
 import { formatDiagnostics } from '../report.js';
@@ -31,17 +32,31 @@ export interface ScanOptions {
   internalDomain?: string[];
   /** Update git sources before scanning (default true). False reuses the cached copies. */
   fetch?: boolean;
+  /** Write the scan report (files analyzed, patterns, redactions, inconclusive relations) to this JSON file. */
+  json?: string;
+  /** List every analyzed file in the report. */
+  verbose?: boolean;
 }
 
-const MAX_EVIDENCE = 3;
+/** One declaration per environment is common (Debug, Release, Production), so allow a few more than one. */
+const MAX_EVIDENCE = 6;
 
 export const slugify = (s: string): string =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'service';
 
 export const stubId = (host: string): string => slugify(host.replace(/^(www|api)\./, ''));
 
-function serviceIdFor(repoDir: string, scan: RepoScan, services: CatalogService[]): string {
+/** Directory name of the repository that holds a project. */
+const repoRootName = (projectDir: string, sub: string): string => path.basename(projectDir.slice(0, projectDir.length - sub.length - 1));
+
+function serviceIdFor(repoDir: string, scan: RepoScan, services: CatalogService[], sub = ''): string {
   if (scan.declared?.id) return scan.declared.id;
+  if (sub) {
+    // A project inside a monorepo: <repo>-<project>, unless the project name already starts with the repo name.
+    const repoBase = slugify(repoRootName(repoDir, sub));
+    const project = slugify(path.posix.basename(sub));
+    return project.startsWith(repoBase) ? project : `${repoBase}-${project}`;
+  }
   const base = path.basename(repoDir);
   const byRepo = services.find((s) => s.repo && (s.repo === base || s.repo.replace(/\/+$/, '').endsWith(`/${base}`)));
   return byRepo?.id ?? slugify(base);
@@ -107,15 +122,22 @@ export async function runScan(dir: string, opts: ScanOptions): Promise<number> {
   }
 
   // Pass 1: scan every repo and learn which hosts belong to which service.
-  const scans = await Promise.all(
-    repos.map(async (repoDir) => {
-      const scan = await scanRepo(repoDir);
-      const repo = sources.repoOf.get(repoDir);
-      if (repo) scan.hints.repo ??= repo;
-      return { repoDir, scan };
-    }),
-  );
-  const assigned = scans.map(({ repoDir, scan }) => ({ repoDir, scan, id: serviceIdFor(repoDir, scan, catalog.services) }));
+  const scans = (
+    await Promise.all(
+      repos.map(async (repoDir) => {
+        const repo = sources.repoOf.get(repoDir);
+        return (await scanProjects(repoDir)).map(({ dir, sub, scan }) => {
+          if (repo) scan.hints.repo ??= repo;
+          return { repoDir: dir, sub, scan };
+        });
+      }),
+    )
+  ).flat();
+  const assigned = scans.map(({ repoDir, sub, scan }) => ({ repoDir, sub, scan, id: serviceIdFor(repoDir, scan, catalog.services, sub) }));
+  // Two projects with the same name (src/api and web/api) must not share an id: fall back to the full path.
+  for (const a of assigned) {
+    if (a.sub && assigned.some((b) => b !== a && b.id === a.id)) a.id = slugify(`${repoRootName(a.repoDir, a.sub)}-${a.sub}`);
+  }
   const byId = new Map<string, CatalogService>(catalog.services.map((s) => [s.id, s]));
   const index = buildHostIndex([
     ...catalog.services,
@@ -126,6 +148,7 @@ export async function runScan(dir: string, opts: ScanOptions): Promise<number> {
   const unresolved: Unresolved[] = [];
   const stubs = new Map<string, Service>();
   const lines: string[] = [];
+  const reports: ServiceReport[] = [];
   let written = 0;
 
   // Pass 2: resolve references and merge into the catalog.
@@ -146,14 +169,14 @@ export async function runScan(dir: string, opts: ScanOptions): Promise<number> {
       if (!target && opts.createStubs && !isInternalHost(ref.host, internalDomains)) {
         target = stubId(ref.host);
         if (!byId.has(target) && !stubs.has(target)) {
-          stubs.set(target, ServiceSchema.parse({ id: target, name: ref.host, kind: 'external', hosts: [ref.host] }));
+          stubs.set(target, ServiceSchema.parse({ id: target, name: ref.host, kind: kindForProtocol(ref.protocol), hosts: [ref.host] }));
         }
       }
       if (!target) {
         unresolved.push({ host: ref.host, protocol: ref.protocol, from: id, evidence: ref.evidence });
         continue;
       }
-      addDep(target, ref.protocol, [ref.evidence]);
+      addDep(target, ref.protocol, [ref.evidence], 'confirmed', ref.provider);
     }
     for (const d of scan.declared?.dependsOn ?? []) addDep(d.target, d.protocol, d.evidence, d.confidence, d.note);
 
@@ -176,16 +199,17 @@ export async function runScan(dir: string, opts: ScanOptions): Promise<number> {
     for (const k of merged.added) lines.push(`    ${pc.green('+')} ${k}`);
     for (const k of merged.removed) lines.push(`    ${pc.red('-')} ${k}`);
     for (const e of scan.errors) lines.push(`    ${pc.red('!')} ${e.file}: ${e.message}`);
+    reports.push(toReport(id, scan));
 
     if (changed && !opts.dryRun && (await writeServiceFile(path.join(root, file), service))) written++;
   }
 
   for (const [sid, stub] of stubs) {
-    lines.push(`${pc.green('+')} ${sid} ${pc.dim('(external stub)')}`);
+    lines.push(`${pc.green('+')} ${sid} ${pc.dim(`(${stub.kind} stub)`)}`);
     if (!opts.dryRun && (await writeServiceFile(path.join(root, `services/${sid}.yaml`), stub))) written++;
   }
 
-  console.log(`scanned ${repos.length} repositor${repos.length === 1 ? 'y' : 'ies'}${opts.dryRun ? ' (dry run, nothing written)' : ''}`);
+  console.log(`scanned ${repos.length} repositor${repos.length === 1 ? 'y' : 'ies'}${scans.length !== repos.length ? ` (${scans.length} services)` : ''}${opts.dryRun ? ' (dry run, nothing written)' : ''}`);
   console.log(lines.join('\n'));
   const printHosts = (title: string, list: Unresolved[]) => {
     if (!list.length) return;
@@ -202,10 +226,43 @@ export async function runScan(dir: string, opts: ScanOptions): Promise<number> {
   const external = unresolved.filter((u) => !isInternalHost(u.host, internalDomains));
   printHosts(`internal hosts without an owner (add them to the "hosts" of the service that serves them):`, internal);
   printHosts(`unresolved external hosts (add them to a service's "hosts" or use --create-stubs):`, external);
+  printReport(reports, opts.verbose ?? false);
+  if (opts.json) {
+    await writeFile(opts.json, `${JSON.stringify({ services: reports, unresolved: unresolved.map(({ host, protocol, from, evidence }) => ({ host, protocol, from, evidence })) }, null, 2)}\n`);
+    console.log(`\nreport written to ${opts.json}`);
+  }
   if (!opts.dryRun) {
     console.log(`\n${written} file${written === 1 ? '' : 's'} written`);
     const { diagnostics: after } = await loadAndValidate(root);
     if (after.length) console.log(formatDiagnostics(after));
   }
   return 0;
+}
+
+/** What the scan did for one service. Counts and locations only; no configuration values. */
+interface ServiceReport {
+  service: string;
+  analyzed: string[];
+  skipped: RepoScan['skipped'];
+  patterns: RepoScan['patterns'];
+  redactions: RepoScan['redactions'];
+  inconclusive: RepoScan['inconclusive'];
+}
+
+function toReport(service: string, scan: RepoScan): ServiceReport {
+  const { analyzed, skipped, patterns, redactions, inconclusive } = scan;
+  return { service, analyzed, skipped, patterns, redactions, inconclusive };
+}
+
+function printReport(reports: ServiceReport[], verbose: boolean): void {
+  console.log(`\n${pc.bold('report')}`);
+  for (const r of reports) {
+    const found = Object.entries(r.patterns).map(([k, n]) => `${k} ${n}`).join(', ');
+    console.log(`  ${r.service}: ${r.analyzed.length} file${r.analyzed.length === 1 ? '' : 's'} analyzed${found ? `, found ${found}` : ''}`);
+    if (verbose) for (const f of r.analyzed) console.log(pc.dim(`      ${f}`));
+    const removed = r.redactions.map((x) => `${x.kind} x${x.count} (${x.file})`);
+    if (removed.length) console.log(`    removed for safety: ${removed.join(', ')}`);
+    for (const i of r.inconclusive) console.log(`    ${pc.yellow('?')} ${i.file}${i.line ? `:${i.line}` : ''}${i.key ? ` ${i.key}` : ''}: ${i.reason}`);
+    for (const s of r.skipped) console.log(pc.dim(`    skipped ${s.file}: ${s.reason}`));
+  }
 }

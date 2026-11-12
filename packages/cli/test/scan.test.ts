@@ -129,6 +129,85 @@ describe('runScan', () => {
   });
 });
 
+const LEGACY_SOURCES = ['legacy-webforms', 'modern-logging', 'mono-repo'].map((r) => `${REPOS}/${r}`);
+const SECRETS = [
+  'Sup3rS3cret', '0racleS3cret', 'Pr0dS3cret', 'k3y-should-never-leak', 'smtp-pass-leak', 'm41l-leak', 'billing_app', 'pgS3cret',
+  'r3d1sS3cret', 'm0ng0S3cret', 'appuser', 'seq-key-leak', 'jwt-secret-leak', 'pr0dPgS3cret', 'pw0rdLeak', 'secret-host', 'real-env-leak',
+];
+
+async function allText(dir: string): Promise<string> {
+  const parts: string[] = [];
+  for (const f of await readdir(path.join(dir, 'services'))) parts.push(await readFile(path.join(dir, 'services', f), 'utf8'));
+  return parts.join('\n');
+}
+
+describe('runScan with legacy configs and monorepos', () => {
+  it('splits a monorepo into one service per application project', async () => {
+    const dir = await catalog({ 'svclens.config.yaml': 'sources: []\n' });
+    expect(await runScan(dir, { source: LEGACY_SOURCES, createStubs: true })).toBe(0);
+    const files = await readdir(path.join(dir, 'services'));
+    expect(files).toEqual(expect.arrayContaining(['mono-repo-orders.yaml', 'mono-repo-billing.yaml', 'mono-repo-web.yaml']));
+    expect(files).not.toContain('mono-repo.yaml');
+    expect(files.some((f) => f.includes('shared'))).toBe(false);
+    const orders = await read(dir, 'services/mono-repo-orders.yaml');
+    expect(orders.dependsOn[0].evidence[0]).toEqual({ file: 'src/orders/appsettings.json', line: 1, key: 'ConnectionStrings:Orders' });
+    expect(out.join('\n')).toContain('3 repositories (5 services)');
+  });
+
+  it('creates one node per host, typed by protocol, with provider, key and environment', async () => {
+    const dir = await catalog({ 'svclens.config.yaml': 'sources: []\n' });
+    await runScan(dir, { source: LEGACY_SOURCES, createStubs: true });
+    expect(await read(dir, 'services/billing-db-acme-internal.yaml')).toMatchObject({ kind: 'database', hosts: ['billing-db.acme.internal'] });
+    expect(await read(dir, 'services/logs-acme-internal.yaml')).toMatchObject({ kind: 'logs' });
+    expect(await read(dir, 'services/seq-acme-internal.yaml')).toMatchObject({ kind: 'logs' });
+    expect(await read(dir, 'services/payments-acme-internal.yaml')).toMatchObject({ kind: 'external' });
+    const web = await read(dir, 'services/legacy-webforms.yaml');
+    const billing = web.dependsOn.find((d: any) => d.target === 'billing-db-acme-internal');
+    expect(billing).toMatchObject({ protocol: 'sql', origin: 'scan', note: 'SQL Server', evidence: [{ file: 'Web.config', key: 'connectionStrings.Billing' }] });
+    const prod = web.dependsOn.find((d: any) => d.target === 'billing-db-prod-acme-internal');
+    expect(prod.evidence[0]).toMatchObject({ file: 'Web.Release.config', env: 'Release' });
+  });
+
+  it('is idempotent: a second scan changes nothing and adds no nodes', async () => {
+    const dir = await catalog({ 'svclens.config.yaml': 'sources: []\n' });
+    const opts = { source: LEGACY_SOURCES, createStubs: true };
+    await runScan(dir, opts);
+    const files = await readdir(path.join(dir, 'services'));
+    const before = await Promise.all(files.map(async (f) => (await stat(path.join(dir, 'services', f))).mtimeMs));
+    await new Promise((r) => setTimeout(r, 20));
+    expect(await runScan(dir, opts)).toBe(0);
+    expect(await readdir(path.join(dir, 'services'))).toEqual(files);
+    expect(await Promise.all(files.map(async (f) => (await stat(path.join(dir, 'services', f))).mtimeMs))).toEqual(before);
+  });
+
+  it('reports files, patterns, redactions and inconclusive relations without leaking values', async () => {
+    const dir = await catalog({ 'svclens.config.yaml': 'sources: []\n' });
+    const json = path.join(dir, 'report.json');
+    await runScan(dir, { source: LEGACY_SOURCES, createStubs: true, json, verbose: true });
+    const text = out.join('\n');
+    expect(text).toMatch(/legacy-webforms: \d+ files? analyzed, found .*connection string/);
+    expect(text).toMatch(/removed for safety: .*password x\d+ \(Web\.config\)/);
+    expect(text).toContain('connectionStrings.Templated: host is a placeholder');
+    expect(text).toContain('skipped .env: environment file that may hold secrets');
+    expect(text).toContain('Web.config');
+    const report = JSON.parse(await readFile(json, 'utf8'));
+    const web = report.services.find((s: any) => s.service === 'legacy-webforms');
+    expect(web.analyzed).toContain('Web.Release.config');
+    expect(web.redactions.length).toBeGreaterThan(0);
+    for (const secret of SECRETS) {
+      expect(JSON.stringify(report), secret).not.toContain(secret);
+      expect(text, secret).not.toContain(secret);
+    }
+  });
+
+  it('never writes secrets, even from legacy configs', async () => {
+    const dir = await catalog({ 'svclens.config.yaml': 'sources: []\n' });
+    await runScan(dir, { source: LEGACY_SOURCES, createStubs: true });
+    const text = await allText(dir);
+    for (const secret of SECRETS) expect(text, secret).not.toContain(secret);
+  });
+});
+
 describe('runLink', () => {
   it('adds a dependency and keeps comments', async () => {
     const dir = await seed();

@@ -36,7 +36,9 @@ program
   .option('--create-stubs', 'create external services for unresolved hosts outside the internal domains')
   .option('-i, --internal-domain <domain>', 'internal domain, e.g. acme.internal or *.corp.example (repeatable; adds to scan.internalDomains)', collect)
   .option('--no-fetch', 'use cached copies of git sources without updating them')
-  .action(async (dir: string, opts: { source?: string[]; dryRun?: boolean; createStubs?: boolean; internalDomain?: string[]; fetch?: boolean }) => {
+  .option('--json <file>', 'write the scan report (files analyzed, patterns, redactions, inconclusive relations) as JSON')
+  .option('-v, --verbose', 'list every analyzed file in the report')
+  .action(async (dir: string, opts: { source?: string[]; dryRun?: boolean; createStubs?: boolean; internalDomain?: string[]; fetch?: boolean; json?: string; verbose?: boolean }) => {
     process.exitCode = await runScan(dir, opts);
   });
 

@@ -61,7 +61,7 @@ O svclens guarda essa informação junto do código, num formato que dá para re
     </td>
     <td width="50%" valign="top">
       <b>Descoberta nos repositórios</b><br>
-      O scan lê arquivos de configuração, projetos .NET e Node, OpenAPI e docker-compose, e preenche as dependências sem apagar o que foi escrito à mão.
+      O scan lê arquivos de configuração (inclusive `Web.config` legado e `appsettings`), projetos .NET e Node, OpenAPI e docker-compose, e preenche as dependências sem apagar o que foi escrito à mão.
     </td>
   </tr>
   <tr>
@@ -222,23 +222,45 @@ Serviços que aparecem como alvo mas não têm arquivo viram um nó tracejado ("
 ```bash
 svclens scan meu-catalogo                          # usa "sources" do svclens.config.yaml
 svclens scan meu-catalogo -s '../repos/*' --dry-run
+svclens scan meu-catalogo --create-stubs --json relatorio.json
 ```
 
 O scanner procura nestes lugares:
 
 | Fonte | O que extrai |
 | --- | --- |
-| Arquivos de configuração (`*.json`, `*.yaml`, `*.xml`, `*.config`, `.env.example` e similares) | URLs `http`, `ws`, `amqp`, `kafka`, `grpc` e `ftp`. Endereços terminados em `.svc` ou `.asmx`, ou com `?wsdl`, viram `soap` |
-| .NET (`*.csproj`, `appsettings*.json`, `Web.config`) | Versão do framework, pacotes como Refit, RabbitMQ, Kafka e gRPC, se o projeto é worker ou webservice, e o host do banco nas connection strings |
+| Arquivos de configuração (`*.json`, `*.yaml`, `*.xml`, `.env.example` e similares) | URLs `http`, `ws`, `amqp`, `kafka`, `grpc` e `ftp`, e URLs de banco (`postgres://`, `mongodb://`, `redis://`). Endereços terminados em `.svc` ou `.asmx`, ou com `?wsdl`, viram `soap` |
+| `Web.config`, `App.config`, transformações (`Web.Release.config`), `appsettings*.json`, NLog e log4net | Seções `connectionStrings` e `appSettings`, endpoints de cliente WCF (`system.serviceModel`), servidor SMTP e destinos de log (NLog, log4net, Serilog, Application Insights). O ambiente vem do nome do arquivo, por exemplo `Release` ou `Production` |
+| .NET (`*.csproj`) | Versão do framework, pacotes como Refit, RabbitMQ, Kafka e gRPC, e se o projeto é worker ou webservice |
 | Node (`package.json`) | Nome, descrição, stack e um tipo sugerido |
 | OpenAPI ou Swagger | Nome, descrição e os hosts do próprio serviço |
 | docker-compose | O `depends_on` dos serviços construídos a partir do repositório |
 | `svclens.yaml` na raiz do repositório | A descrição que o dono do serviço escreveu, que vale mais do que o scan |
 
+Cada conexão de banco vira uma relação `sql`, `mongodb` ou `redis` para o host, e o produto (SQL Server, PostgreSQL, Oracle e outros) aparece na nota da dependência. Destinos de log e telemetria viram relações `logs`. Com `--create-stubs`, o host de banco vira um nó `database` e o de log um nó `logs`, um nó por host, mesmo que ele apareça em vários arquivos e ambientes.
+
+Cada evidência guarda o arquivo, a linha, a chave (por exemplo `connectionStrings.Billing` ou `Serilog:WriteTo:0:Args:serverUrl`) e o ambiente, quando o nome do arquivo indica um.
+
 Cada URL encontrada é comparada com o campo `hosts` dos serviços do catálogo. Quando mais de um combina, vence o prefixo `host/caminho` mais longo. É por isso que vale preencher `hosts` nos serviços: sem ele o scan não sabe de quem é aquele endereço.
 
 > [!IMPORTANT]
-> O catálogo guarda só o host e o `arquivo:linha` da evidência. URLs completas, usuários, senhas e connection strings não são gravados, e arquivos `.env` reais nem são lidos (só `.env.example`, `.env.sample`, `.env.template` e `.env.development`).
+> O catálogo guarda só o host e a evidência (`arquivo:linha`, chave e ambiente). URLs completas, usuários, senhas, tokens, chaves e connection strings não são gravados, e arquivos `.env` reais nem são lidos (só `.env.example`, `.env.sample`, `.env.template` e `.env.development`). Arquivos acima de 1 MB e lockfiles também ficam de fora.
+
+<details>
+<summary>Monorepos</summary>
+
+Quando um repositório tem dois ou mais projetos de aplicação (um `.csproj` web, worker ou executável, ou um `package.json` com `scripts.start` ou um framework de servidor), cada um vira um serviço, com id `repositório-projeto`. Bibliotecas, pastas de testes, exemplos e documentação ficam de fora. Se houver um `svclens.yaml` na raiz, o repositório continua sendo um serviço só. Arquivos de configuração na raiz que não pertencem a nenhum projeto não são analisados e aparecem no relatório como ignorados.
+
+Se o repositório já tinha sido escaneado como um serviço único, o serviço antigo continua no catálogo e pode ser apagado à mão.
+
+</details>
+
+<details>
+<summary>Relatório do scan</summary>
+
+Ao final, o scan lista por serviço quantos arquivos analisou, os padrões que encontrou, o que removeu por segurança (só o tipo e a contagem, nunca o valor), as relações inconclusivas (host indefinido, placeholder como `${DB_HOST}`, JSON inválido) e os arquivos ignorados, com o motivo. `--verbose` lista todos os arquivos analisados e `--json arquivo.json` grava o mesmo relatório para uso em CI.
+
+</details>
 
 <details>
 <summary>Repositórios git como fonte</summary>
@@ -268,7 +290,7 @@ scan:
     - '*.corp.example'    # só subdomínios
 ```
 
-`--create-stubs` cadastra como `external` os hosts externos sem dono. Hosts internos nunca viram stub: o certo é colocá-los no `hosts` do serviço que os atende.
+`--create-stubs` cadastra os hosts externos sem dono: como `database` os de banco, como `logs` os de log e como `external` os demais. Hosts internos nunca viram stub: o certo é colocá-los no `hosts` do serviço que os atende.
 
 </details>
 
@@ -281,7 +303,7 @@ O scan só substitui dependências com `origin: scan`. As de origem `agent` e `m
 
 ### Skills para agentes de IA
 
-O scan só enxerga o que está em arquivos de configuração. Chamadas que aparecem só no código (um `HttpClient`, um `fetch`, um proxy WCF, uma fila) ficam para um agente. A pasta [`skills/`](skills) tem instruções prontas, em Markdown simples, para qualquer agente de código:
+O scan só enxerga o que está em arquivos de configuração. Um relacionamento que passa por uma camada intermediária (um serviço que acessa o banco em nome de outro) aparece como cada projeto declara, sem distinção entre cliente e servidor. Chamadas que aparecem só no código (um `HttpClient`, um `fetch`, um proxy WCF, uma fila) ficam para um agente. A pasta [`skills/`](skills) tem instruções prontas, em Markdown simples, para qualquer agente de código:
 
 - [`svclens-discover`](skills/svclens-discover/SKILL.md) roda o scan, lê o código atrás do que faltou e registra cada achado com `svclens link` como `inferred`, junto com a evidência.
 - [`svclens-add`](skills/svclens-add/SKILL.md) cadastra um serviço novo com poucas perguntas e valida o resultado.
@@ -443,7 +465,7 @@ Os arquivos de serviço têm um JSON Schema. Para ter autocompletar e validaçã
 | `svclens validate [dir] [--strict]` | Confere o schema, ids duplicados, tipos desconhecidos, alvos sem cadastro e serviços sem owner. Com `--strict`, avisos também fazem o comando falhar. |
 | `svclens build [dir] [-o saida]` | Valida o catálogo e gera o site com o `graph.json` em `saida` (por padrão, `<dir>/dist`). |
 | `svclens serve [dir] [-p porta] [--open]` | Abre o editor local (porta 4321 por padrão, só para a própria máquina). |
-| `svclens scan [dir] [-s fonte] [-i domínio] [--dry-run] [--create-stubs] [--no-fetch]` | Lê os repositórios (pastas ou URLs git) e atualiza serviços e dependências. |
+| `svclens scan [dir] [-s fonte] [-i domínio] [--dry-run] [--create-stubs] [--no-fetch] [--json arquivo] [-v]` | Lê os repositórios (pastas ou URLs git) e atualiza serviços e dependências. |
 | `svclens link <origem> <alvo> [-d dir] [-p protocolo] [-c confiança] [-e arquivo:linha] [-n nota]` | Adiciona ou atualiza uma dependência sem mexer nos comentários do arquivo. As skills usam este comando. |
 | `svclens export [dir] [-f mermaid] [-o arquivo] [--direction LR\|TB]` | Exporta o catálogo como diagrama Mermaid. |
 | `svclens diff [dir] [-b ref] [-f text\|markdown]` | Mostra o que mudou desde uma referência git. |

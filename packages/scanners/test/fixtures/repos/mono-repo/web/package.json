@@ -1,0 +1,1 @@
+{ "name": "storefront", "scripts": { "start": "node server.js" } }

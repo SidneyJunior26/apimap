@@ -14,7 +14,7 @@ describe('dotnet', () => {
       'orders-db.acme.internal:sql',
       'payments.acme.internal:http',
     ]);
-    expect(r.references.find((x) => x.protocol === 'sql')?.evidence).toEqual({ file: 'src/OrdersApi/appsettings.json', line: 7 });
+    expect(r.references.find((x) => x.protocol === 'sql')?.evidence).toEqual({ file: 'src/OrdersApi/appsettings.json', line: 7, key: 'ConnectionStrings:Orders' });
     expect(r.hints.tech).toEqual(expect.arrayContaining(['dotnet8', 'refit', 'rabbitmq']));
     expect(r.errors).toEqual([]);
   });
