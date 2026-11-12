@@ -1,4 +1,4 @@
-import type { GraphJson } from '@apimap/core';
+import type { GraphJson } from '@svclens/core';
 import { useEffect, useRef, type MutableRefObject } from 'react';
 import Sigma from 'sigma';
 import { searchMatches, type Visible } from '../filters';

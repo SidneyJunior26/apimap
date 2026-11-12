@@ -14,14 +14,14 @@ beforeEach(() => {
 });
 
 async function setup(config = '') {
-  const repo = await mkdtemp(path.join(os.tmpdir(), 'apimap-edit-'));
+  const repo = await mkdtemp(path.join(os.tmpdir(), 'svclens-edit-'));
   git(repo, 'init', '-q', '-b', 'trunk');
   git(repo, 'remote', 'add', 'origin', 'git@github.com:acme/platform-map.git');
   const dir = path.join(repo, 'catalog');
   await mkdir(path.join(dir, 'services'), { recursive: true });
   await writeFile(path.join(dir, 'services/a.yaml'), 'id: a\nname: A\nkind: core\nowner: t\n');
-  if (config) await writeFile(path.join(dir, 'apimap.config.yaml'), config);
-  const webDist = await mkdtemp(path.join(os.tmpdir(), 'apimap-web-'));
+  if (config) await writeFile(path.join(dir, 'svclens.config.yaml'), config);
+  const webDist = await mkdtemp(path.join(os.tmpdir(), 'svclens-web-'));
   await writeFile(path.join(webDist, 'index.html'), '<html></html>');
   return { dir, webDist };
 }

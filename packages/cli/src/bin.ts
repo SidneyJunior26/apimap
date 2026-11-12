@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 
-declare const __APIMAP_VERSION__: string;
+declare const __SVCLENS_VERSION__: string;
 import { runBuild, runDiff, runExport, runLink, runScan, runServe, runValidate } from './index.js';
 
-const program = new Command('apimap').description('Map your APIs as an interactive graph').version(__APIMAP_VERSION__);
+const program = new Command('svclens').description('Map your APIs as an interactive graph').version(__SVCLENS_VERSION__);
 
 program
   .command('validate')
@@ -31,7 +31,7 @@ program
   .command('scan')
   .description('discover services and dependencies from repositories')
   .argument('[dir]', 'catalog directory', '.')
-  .option('-s, --source <glob>', 'repository directory glob (repeatable; default: sources in apimap.config.yaml)', collect)
+  .option('-s, --source <glob>', 'repository directory glob (repeatable; default: sources in svclens.config.yaml)', collect)
   .option('--dry-run', 'show what would change without writing')
   .option('--create-stubs', 'create external services for unresolved hosts outside the internal domains')
   .option('-i, --internal-domain <domain>', 'internal domain, e.g. acme.internal or *.corp.example (repeatable; adds to scan.internalDomains)', collect)

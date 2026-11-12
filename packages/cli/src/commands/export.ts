@@ -1,6 +1,6 @@
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { buildGraph, toMermaid } from '@apimap/core';
+import { buildGraph, toMermaid } from '@svclens/core';
 import { formatDiagnostics } from '../report.js';
 import { loadAndValidate } from './check.js';
 

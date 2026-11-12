@@ -11,13 +11,13 @@ export default defineConfig({
   format: ['esm'],
   target: 'node20',
   clean: true,
-  dts: { entry: 'src/index.ts', resolve: [/^@apimap\//] },
+  dts: { entry: 'src/index.ts', resolve: [/^@svclens\//] },
   // The published package is self-contained: core and scanners are bundled in, the viewer is copied next to it.
-  noExternal: [/^@apimap\//],
-  define: { __APIMAP_VERSION__: JSON.stringify(pkg.version) },
+  noExternal: [/^@svclens\//],
+  define: { __SVCLENS_VERSION__: JSON.stringify(pkg.version) },
   banner: ({ format }) => (format === 'esm' ? { js: '' } : {}),
   async onSuccess() {
-    if (!existsSync(webDist)) throw new Error('build @apimap/web first (pnpm -r build does it in order)');
+    if (!existsSync(webDist)) throw new Error('build @svclens/web first (pnpm -r build does it in order)');
     rmSync(out, { recursive: true, force: true });
     cpSync(webDist, out, { recursive: true });
   },

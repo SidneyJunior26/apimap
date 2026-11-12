@@ -1,26 +1,26 @@
 ---
-name: apimap-discover
-description: Descobre as dependências de um serviço lendo o código-fonte e as registra em um catálogo apimap. Use quando pedirem para mapear, documentar ou atualizar quais APIs, bancos de dados, filas, serviços SOAP, websockets ou fornecedores externos um repositório chama.
+name: svclens-discover
+description: Descobre as dependências de um serviço lendo o código-fonte e as registra em um catálogo svclens. Use quando pedirem para mapear, documentar ou atualizar quais APIs, bancos de dados, filas, serviços SOAP, websockets ou fornecedores externos um repositório chama.
 ---
 
-# apimap-discover
+# svclens-discover
 
-Objetivo: completar o catálogo apimap de um ou mais repositórios. O scanner determinístico encontra o que está nos arquivos de configuração; você encontra o que só aparece no código e registra como `inferred`, com evidência.
+Objetivo: completar o catálogo svclens de um ou mais repositórios. O scanner determinístico encontra o que está nos arquivos de configuração; você encontra o que só aparece no código e registra como `inferred`, com evidência.
 
 ## Entradas
 
-- Diretório do catálogo (contém `apimap.config.yaml` e `services/`). Pergunte se não souber.
+- Diretório do catálogo (contém `svclens.config.yaml` e `services/`). Pergunte se não souber.
 - Diretório ou diretórios dos repositórios a analisar.
 
 ## Passos
 
 1. **Rode o scanner primeiro**, para registrar só o que ele não consegue ver:
    ```bash
-   npx apimap scan <catalogo> --source <repo>
+   npx svclens scan <catalogo> --source <repo>
    ```
    Leia o relatório: serviços novos, arestas adicionadas e as listas de **hosts sem dono** (internos e externos).
 
-2. **Resolva os hosts sem dono.** Para cada host do relatório, descubra qual serviço do catálogo o atende (`services/*.yaml`, campo `hosts`). Encontrou o dono? Adicione o host à lista `hosts` desse serviço. Se for um fornecedor, crie um serviço `external` (veja a skill `apimap-add`). Se o domínio é da empresa e ainda não está em `scan.internalDomains` no `apimap.config.yaml`, sugira incluí-lo. Rode o scan de novo.
+2. **Resolva os hosts sem dono.** Para cada host do relatório, descubra qual serviço do catálogo o atende (`services/*.yaml`, campo `hosts`). Encontrou o dono? Adicione o host à lista `hosts` desse serviço. Se for um fornecedor, crie um serviço `external` (veja a skill `svclens-add`). Se o domínio é da empresa e ainda não está em `scan.internalDomains` no `svclens.config.yaml`, sugira incluí-lo. Rode o scan de novo.
 
 3. **Leia o código atrás de chamadas que o scanner não vê.** Procure:
    - Clientes HTTP: `HttpClient`/`IHttpClientFactory`/interfaces Refit (.NET), `fetch`/`axios`/`got`/`ky` (JS/TS), `RestTemplate`/`WebClient`/Feign (Java), `requests`/`httpx` (Python).
@@ -32,19 +32,19 @@ Objetivo: completar o catálogo apimap de um ou mais repositórios. O scanner de
 
 4. **Registre cada achado** pela CLI (ela preserva comentários e formatação):
    ```bash
-   npx apimap link <id-origem> <id-alvo> -d <catalogo> \
+   npx svclens link <id-origem> <id-alvo> -d <catalogo> \
      --protocol <http|soap|ws|grpc|graphql|amqp|kafka|sql|ftp> \
      --confidence inferred --origin agent \
      --evidence <caminho/relativo/arquivo:linha> --note "<o que a chamada faz, até 80 caracteres>"
    ```
    - `id-origem`: o serviço cujo código faz a chamada.
-   - `id-alvo`: um id existente no catálogo. Se não existir, crie antes com `apimap-add`.
+   - `id-alvo`: um id existente no catálogo. Se não existir, crie antes com `svclens-add`.
    - Um `--evidence` para cada ponto de chamada verificado, no máximo três.
    - Use `--confidence confirmed` só quando o alvo é inequívoco no código (URL literal ou cliente gerado para aquele serviço específico).
 
 5. **Valide** e corrija o que for apontado:
    ```bash
-   npx apimap validate <catalogo>
+   npx svclens validate <catalogo>
    ```
 
 6. **Resuma** para o usuário: dependências adicionadas por serviço, hosts que você não conseguiu atribuir e o que precisa de decisão humana.

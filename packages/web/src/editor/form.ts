@@ -1,4 +1,4 @@
-import type { Confidence, Dependency, Service } from '@apimap/core';
+import type { Confidence, Dependency, Service } from '@svclens/core';
 
 export interface DepRow {
   target: string;

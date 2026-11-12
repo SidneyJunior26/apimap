@@ -1,7 +1,7 @@
 import { mkdtemp, realpath, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { buildGraph, diffGraphs, formatDiff, loadCatalog } from '@apimap/core';
+import { buildGraph, diffGraphs, formatDiff, loadCatalog } from '@svclens/core';
 import { extractAt, GitError, posix, refExists, repoRoot } from '../git.js';
 
 export interface DiffOptions {
@@ -15,7 +15,7 @@ export async function runDiff(dir: string, opts: DiffOptions): Promise<number> {
   const catalogDir = path.resolve(dir);
   const root = await repoRoot(catalogDir);
   if (!root) {
-    console.error(`"${dir}" is not inside a git repository; apimap diff compares against a git ref`);
+    console.error(`"${dir}" is not inside a git repository; svclens diff compares against a git ref`);
     return 1;
   }
   const candidates = opts.base ? [opts.base] : ['origin/main', 'main'];
@@ -31,7 +31,7 @@ export async function runDiff(dir: string, opts: DiffOptions): Promise<number> {
     return 1;
   }
 
-  const tmp = await mkdtemp(path.join(os.tmpdir(), 'apimap-base-'));
+  const tmp = await mkdtemp(path.join(os.tmpdir(), 'svclens-base-'));
   try {
     // realpath: on macOS /tmp and /private/tmp are the same folder seen through a symlink.
     const rel = posix(path.relative(await realpath(root), await realpath(catalogDir)));

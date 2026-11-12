@@ -5,7 +5,7 @@
     "jsx": "react-jsx",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["node", "vite/client"],
-    "paths": { "@apimap/core": ["../core/src/index.ts"], "@apimap/core/*": ["../core/src/*.ts"] }
+    "paths": { "@svclens/core": ["../core/src/index.ts"], "@svclens/core/*": ["../core/src/*.ts"] }
   },
   "include": ["src", "test", "scripts", "e2e", "vite.config.ts", "playwright.config.ts"]
 }

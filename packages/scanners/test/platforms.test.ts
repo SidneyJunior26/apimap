@@ -55,7 +55,7 @@ describe('docker-compose', () => {
   });
 });
 
-describe('apimap.yaml manifest', () => {
+describe('svclens.yaml manifest', () => {
   it('reads the owner-declared service', async () => {
     const r = await scanRepo(repo('partner-gateway'));
     expect(r.declared).toMatchObject({ id: 'partner-gateway', name: 'Partner Gateway', owner: 'team-partners' });
@@ -66,6 +66,6 @@ describe('apimap.yaml manifest', () => {
   it('reports an invalid manifest without aborting', async () => {
     const r = await scanRepo(repo('broken-manifest'));
     expect(r.declared).toBeUndefined();
-    expect(r.errors.map((e) => e.file)).toEqual(['apimap.yaml']);
+    expect(r.errors.map((e) => e.file)).toEqual(['svclens.yaml']);
   });
 });

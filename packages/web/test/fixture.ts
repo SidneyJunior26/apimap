@@ -1,4 +1,4 @@
-import type { GraphEdge, GraphJson, GraphNode } from '@apimap/core';
+import type { GraphEdge, GraphJson, GraphNode } from '@svclens/core';
 
 export function node(id: string, extra: Partial<GraphNode> = {}): GraphNode {
   return { id, label: id, kind: 'core', tech: [], hosts: [], tags: [], ghost: false, inDegree: 0, outDegree: 0, ...extra };

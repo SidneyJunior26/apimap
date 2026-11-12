@@ -3,8 +3,8 @@
   "compilerOptions": {
     "noEmit": true,
     "paths": {
-      "@apimap/core": ["../core/src/index.ts"],
-      "@apimap/scanners": ["../scanners/src/index.ts"]
+      "@svclens/core": ["../core/src/index.ts"],
+      "@svclens/scanners": ["../scanners/src/index.ts"]
     }
   },
   "include": ["src", "test"]

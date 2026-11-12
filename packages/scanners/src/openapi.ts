@@ -1,4 +1,4 @@
-import { parseEndpoint } from '@apimap/core';
+import { parseEndpoint } from '@svclens/core';
 import { parse } from 'yaml';
 import { NOISE_HOSTS } from './generic.js';
 import type { Scanner } from './types.js';

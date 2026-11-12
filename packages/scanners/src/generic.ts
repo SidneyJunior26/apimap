@@ -1,4 +1,4 @@
-import { parseEndpoint } from '@apimap/core';
+import { parseEndpoint } from '@svclens/core';
 import path from 'node:path';
 import { ALLOWED_ENV_FILES, lineAt } from './files.js';
 import type { Scanner } from './types.js';

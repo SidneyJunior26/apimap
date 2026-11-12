@@ -1,5 +1,5 @@
 {
-  "name": "apimap-monorepo",
+  "name": "svclens-monorepo",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@9.15.4",
@@ -10,7 +10,7 @@
     "build": "pnpm -r build",
     "test": "vitest run",
     "typecheck": "pnpm -r typecheck",
-    "apimap": "node packages/cli/dist/bin.js"
+    "svclens": "node packages/cli/dist/bin.js"
   },
   "devDependencies": {
     "typescript": "^5.6.3",

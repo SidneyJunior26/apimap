@@ -1,6 +1,6 @@
-# apimap — Mapa mental de APIs como grafo (open source)
+# svclens — Mapa mental de APIs como grafo (open source)
 
-> Nome provisório `apimap`. Checar disponibilidade no npm/GitHub antes de publicar.
+> O projeto nasceu com o nome provisório `apimap`. Antes da primeira publicação foi renomeado para `svclens`, porque o nome antigo já tinha sido usado e despublicado no npm, era parecido com `api-map` (o npm recusa nomes assim) e confundia com outros projetos.
 
 ## Contexto
 
@@ -10,8 +10,8 @@ Decisões de design:
 1. **Fonte da verdade = arquivos YAML no Git** (graph-as-code, sem backend).
 2. **Descoberta híbrida**: CLI determinístico (arestas `confirmed`) + skill de agente IA (arestas `inferred` com evidência).
 3. **Visual: 2D WebGL padrão + toggle 3D** (modo apresentação).
-4. **Edição**: MVP local (`apimap serve` grava YAML); v2 site publicado abre PR.
-5. **Multi-repo**: repo central + federação opcional (`apimap.yaml` em cada repo).
+4. **Edição**: MVP local (`svclens serve` grava YAML); v2 site publicado abre PR.
+5. **Multi-repo**: repo central + federação opcional (`svclens.yaml` em cada repo).
 6. **Stack**: TypeScript monorepo pnpm.
 
 Importante: dataset de exemplo **fictício** (`acme-demo`). Nada de dados reais de empresas no repo público.
@@ -19,15 +19,15 @@ Importante: dataset de exemplo **fictício** (`acme-demo`). Nada de dados reais 
 ## Arquitetura
 
 ```
-apimap/                         (novo repo em ~/Documents/Projetos/OpenSource/apimap)
+svclens/                         (repositório)
   packages/
     core/       schema Zod, load/merge/validate, modelo de grafo (graphology), JSON Schema exportado
     scanners/   plugins: openapi, dotnet (appsettings*.json, HttpClient/Refit config), node (.env, axios baseURL), docker-compose, k8s, generic-url
-    cli/        apimap init | scan | validate | serve | build
+    cli/        svclens init | scan | validate | serve | build
     web/        Vite + React; 2D Sigma.js; 3D 3d-force-graph; editor (modo serve)
   skills/
-    apimap-discover/SKILL.md    (análise profunda por agente, agnóstico de ferramenta de IA)
-    apimap-add/SKILL.md         (cadastrar serviço conversando)
+    svclens-discover/SKILL.md    (análise profunda por agente, agnóstico de ferramenta de IA)
+    svclens-add/SKILL.md         (cadastrar serviço conversando)
   examples/acme-demo/           catálogo fictício ~40 serviços cobrindo todos tipos
   docs/  .github/workflows/  LICENSE (MIT)
 ```
@@ -36,7 +36,7 @@ Fluxo: `scan`/skill/UI escrevem `services/*.yaml` → `validate` → `build` ger
 
 ## Modelo de dados (core)
 
-`apimap.config.yaml`:
+`svclens.config.yaml`:
 - `sources`: globs locais (`../repos/*`), v2 git URLs.
 - `kinds`: tipos customizáveis com `label`, `color`, `icon`, `shape`. Defaults: `bff, core, web, worker, webservice, websocket, grpc, graphql, queue, database, ftp, logs, external, legacy`. Empresa pode adicionar `delphi` etc.
 - `groups`/domínios opcionais (cluster visual).
@@ -67,7 +67,7 @@ Regras de merge (rescan): só atualiza entradas da mesma `origin`; `manual` nunc
 ## Descoberta
 
 - **CLI determinístico**: lê configs, extrai URLs/hosts, casa com `hosts` dos serviços → aresta `confirmed`. OpenAPI vira metadados/endpoints. Falha por arquivo não fatal; relatório final (novos, removidos, não resolvidos).
-- **Skill `apimap-discover`**: instrui agente a rodar `apimap scan` primeiro, depois ler código (HttpClient, fetch/axios, WSDL/SOAP, SignalR/ws, produtores/consumidores de fila, FTP, connection strings), escrever `dependsOn` com `confidence: inferred` + `evidence`, e terminar com `apimap validate`.
+- **Skill `svclens-discover`**: instrui agente a rodar `svclens scan` primeiro, depois ler código (HttpClient, fetch/axios, WSDL/SOAP, SignalR/ws, produtores/consumidores de fila, FTP, connection strings), escrever `dependsOn` com `confidence: inferred` + `evidence`, e terminar com `svclens validate`.
 
 ## Web (visual)
 
@@ -80,7 +80,7 @@ Regras de merge (rescan): só atualiza entradas da mesma `origin`; `manual` nunc
 
 ## Erros
 
-Zod valida tudo com mensagens `arquivo:caminho`. Erros (bloqueiam build): id duplicado, kind inexistente, YAML inválido. Warnings: target não resolvido, serviço sem owner, evidência apontando arquivo inexistente. `apimap validate --strict` transforma warnings em erro (CI).
+Zod valida tudo com mensagens `arquivo:caminho`. Erros (bloqueiam build): id duplicado, kind inexistente, YAML inválido. Warnings: target não resolvido, serviço sem owner, evidência apontando arquivo inexistente. `svclens validate --strict` transforma warnings em erro (CI).
 
 ## Roadmap
 
@@ -92,13 +92,13 @@ Zod valida tudo com mensagens `arquivo:caminho`. Erros (bloqueiam build): id dup
 
 ## Primeiros passos de execução
 
-1. Criar `~/Documents/Projetos/OpenSource/apimap`, `git init`.
-2. Gravar este design em `docs/plans/2026-11-11-apimap-design.md` e commitar.
-3. Gerar plano de implementação detalhado de M1 (`docs/plans/2026-11-11-apimap-m1-plan.md`) e executar.
+1. Criar o repositório `svclens` e inicializar o git.
+2. Gravar este design em `docs/plans/2026-11-11-svclens-design.md` e commitar.
+3. Gerar plano de implementação detalhado de M1 (`docs/plans/2026-11-11-svclens-m1-plan.md`) e executar.
 
 ## Verificação
 
 - `pnpm test` (vitest): schema, merge, resolução host→serviço; scanners com fixtures em `packages/scanners/__fixtures__` + snapshots.
-- `pnpm apimap validate examples/acme-demo` sem erros; `apimap build` gera site; abrir e conferir render 2D/3D, filtros, busca, foco.
+- `pnpm svclens validate examples/acme-demo` sem erros; `svclens build` gera site; abrir e conferir render 2D/3D, filtros, busca, foco.
 - Playwright smoke: carrega grafo, filtra kind, abre detalhe, (M3) cria/edita/exclui serviço e verifica YAML no disco.
 - CI GitHub Actions: lint, typecheck, test, build demo, deploy demo no GitHub Pages.

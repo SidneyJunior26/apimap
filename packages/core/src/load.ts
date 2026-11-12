@@ -23,7 +23,7 @@ export interface Catalog {
   services: CatalogService[];
 }
 
-export const CONFIG_FILE = 'apimap.config.yaml';
+export const CONFIG_FILE = 'svclens.config.yaml';
 export const SERVICES_GLOB = 'services/**/*.{yaml,yml}';
 
 type Parsed = { ok: true; value: unknown } | { ok: false; diagnostic: Diagnostic };

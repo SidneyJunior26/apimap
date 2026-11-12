@@ -1,4 +1,4 @@
-import type { GraphEdge, GraphJson } from '@apimap/core';
+import type { GraphEdge, GraphJson } from '@svclens/core';
 import { EDIT_LABELS, type EditMode, type FocusMode, type Selection } from '../state';
 
 interface Props {

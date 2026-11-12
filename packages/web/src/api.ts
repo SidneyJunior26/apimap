@@ -1,4 +1,4 @@
-import type { Service } from '@apimap/core';
+import type { Service } from '@svclens/core';
 
 export interface Issue {
   path: string;

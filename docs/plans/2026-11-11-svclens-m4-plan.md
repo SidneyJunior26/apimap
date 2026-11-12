@@ -1,10 +1,10 @@
-# apimap M4: plano de implementação
+# svclens M4: plano de implementação
 
 Objetivo: o visualizador ganha um modo 3D para apresentações, um tema claro e exportação do grafo em PNG.
 
-Arquitetura: tudo dentro de `@apimap/web`. O modo 3D usa 3d-force-graph (three.js) carregado sob demanda, para não pesar no 2D. Tema e modo ficam na URL (`?view=3d&theme=paper`), para que um link compartilhado abra igual; a última escolha também fica no `localStorage` do navegador. A exportação junta as camadas do canvas atual numa imagem só.
+Arquitetura: tudo dentro de `@svclens/web`. O modo 3D usa 3d-force-graph (three.js) carregado sob demanda, para não pesar no 2D. Tema e modo ficam na URL (`?view=3d&theme=paper`), para que um link compartilhado abra igual; a última escolha também fica no `localStorage` do navegador. A exportação junta as camadas do canvas atual numa imagem só.
 
-Spec: `docs/plans/2026-11-11-apimap-design.md`, seção Web (itens 3D, Fundo, toolbar) e Roadmap M4.
+Spec: `docs/plans/2026-11-11-svclens-design.md`, seção Web (itens 3D, Fundo, toolbar) e Roadmap M4.
 
 ## Restrições
 

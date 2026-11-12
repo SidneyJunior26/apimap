@@ -1,4 +1,4 @@
-import type { EditTarget } from '@apimap/core';
+import type { EditTarget } from '@svclens/core';
 
 /** Above this, browsers and GitHub start rejecting links; the content is copied instead. */
 export const MAX_URL_LENGTH = 7000;

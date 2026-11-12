@@ -1,4 +1,4 @@
-import type { Confidence, GraphJson } from '@apimap/core';
+import type { Confidence, GraphJson } from '@svclens/core';
 import type { Visible } from '../filters';
 import { nodeSize } from '../graph/layout';
 

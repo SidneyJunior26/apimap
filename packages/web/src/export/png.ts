@@ -1,7 +1,7 @@
 import { normalize } from '../filters';
 
 export function exportFileName(name: string, date: Date): string {
-  const slug = normalize(name).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'apimap';
+  const slug = normalize(name).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'svclens';
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${slug}-${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}.png`;
 }

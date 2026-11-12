@@ -24,7 +24,7 @@ beforeEach(() => {
 
 describe('runExport', () => {
   it('prints mermaid to stdout or writes a file', async () => {
-    const dir = await mkdtemp(path.join(os.tmpdir(), 'apimap-export-'));
+    const dir = await mkdtemp(path.join(os.tmpdir(), 'svclens-export-'));
     await write(dir, { 'services/a.yaml': 'id: a\nname: A\nkind: core\nowner: t\ndependsOn:\n  - target: b\n', 'services/b.yaml': 'id: b\nname: B\nkind: database\nowner: t\n' });
     expect(await runExport(dir, { format: 'mermaid' })).toBe(0);
     expect(out.join('\n')).toContain('flowchart LR');
@@ -33,14 +33,14 @@ describe('runExport', () => {
   });
 
   it('rejects unknown formats', async () => {
-    const dir = await mkdtemp(path.join(os.tmpdir(), 'apimap-export-'));
+    const dir = await mkdtemp(path.join(os.tmpdir(), 'svclens-export-'));
     expect(await runExport(dir, { format: 'svg' })).toBe(1);
   });
 });
 
 describe('runDiff', () => {
   it('compares the working tree with a git ref', async () => {
-    const repo = await mkdtemp(path.join(os.tmpdir(), 'apimap-diff-'));
+    const repo = await mkdtemp(path.join(os.tmpdir(), 'svclens-diff-'));
     git(repo, 'init', '-q', '-b', 'main');
     await write(repo, {
       'catalog/services/a.yaml': 'id: a\nname: A\nkind: core\nowner: t\ndependsOn:\n  - target: b\n',
@@ -60,7 +60,7 @@ describe('runDiff', () => {
   });
 
   it('treats a catalog missing at the base ref as empty', async () => {
-    const repo = await mkdtemp(path.join(os.tmpdir(), 'apimap-diff-'));
+    const repo = await mkdtemp(path.join(os.tmpdir(), 'svclens-diff-'));
     git(repo, 'init', '-q', '-b', 'main');
     await write(repo, { 'README.md': 'x' });
     git(repo, 'add', '.');
@@ -71,7 +71,7 @@ describe('runDiff', () => {
   });
 
   it('fails clearly outside a git repository or with an unknown ref', async () => {
-    const dir = await mkdtemp(path.join(os.tmpdir(), 'apimap-nogit-'));
+    const dir = await mkdtemp(path.join(os.tmpdir(), 'svclens-nogit-'));
     expect(await runDiff(dir, { base: 'main', format: 'text' })).toBe(1);
     expect(out.join('\n')).toContain('not inside a git repository');
   });

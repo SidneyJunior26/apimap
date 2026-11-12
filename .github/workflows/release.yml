@@ -1,6 +1,6 @@
 name: Release
 
-# Publishes the apimap package to npm when a version tag (v0.1.0, v0.2.0, ...) is pushed.
+# Publishes the svclens package to npm when a version tag (v0.1.0, v0.2.0, ...) is pushed.
 on:
   push:
     tags: ['v*']

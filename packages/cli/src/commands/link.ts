@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { DependencySchema, loadCatalog, writeServiceFile, type Evidence } from '@apimap/core';
+import { DependencySchema, loadCatalog, writeServiceFile, type Evidence } from '@svclens/core';
 
 export interface LinkOptions {
   protocol?: string;

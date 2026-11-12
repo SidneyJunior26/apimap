@@ -1,4 +1,4 @@
-import type { Diagnostic } from '@apimap/core';
+import type { Diagnostic } from '@svclens/core';
 import pc from 'picocolors';
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;

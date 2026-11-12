@@ -14,7 +14,7 @@ for (const [catalog, out] of [
   execFileSync(process.execPath, [cli, 'build', here(catalog), '-o', here(out)], { stdio: 'inherit' });
 }
 
-// Writable copy of the demo catalog for the editor tests (apimap serve).
+// Writable copy of the demo catalog for the editor tests (svclens serve).
 cpSync(here('../../../examples/acme-demo'), here('./.sites/serve-catalog'), {
   recursive: true,
   filter: (src) => !src.includes(`${'/'}dist`),

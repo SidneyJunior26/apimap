@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_KINDS } from '@apimap/core';
+import { DEFAULT_KINDS } from '@svclens/core';
 import { contrastRatio, PAPER_BG, themeColor } from '../src/theme.js';
 
 describe('themeColor', () => {

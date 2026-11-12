@@ -1,4 +1,4 @@
-import type { Confidence } from '@apimap/core';
+import type { Confidence } from '@svclens/core';
 import { emptyRow, type DepRow } from './form';
 
 const PROTOCOLS = ['http', 'soap', 'ws', 'grpc', 'graphql', 'amqp', 'kafka', 'sql', 'redis', 'ftp'];

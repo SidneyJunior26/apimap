@@ -1,5 +1,5 @@
 {
-  "name": "@apimap/web",
+  "name": "@svclens/web",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -27,7 +27,7 @@
     "three": "0.186.1"
   },
   "devDependencies": {
-    "@apimap/core": "workspace:^",
+    "@svclens/core": "workspace:^",
     "@playwright/test": "^1.49.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",

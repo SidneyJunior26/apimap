@@ -22,15 +22,15 @@ jobs:
       - run: pnpm -r typecheck
       - run: pnpm test
       - run: pnpm build
-      - run: pnpm apimap validate examples/acme-demo
+      - run: pnpm svclens validate examples/acme-demo
       - name: Check the npm package contents
         working-directory: packages/cli
         run: npm pack --dry-run
-      - run: pnpm --filter @apimap/web exec playwright install chromium
-      - run: pnpm --filter @apimap/web e2e
+      - run: pnpm --filter @svclens/web exec playwright install chromium
+      - run: pnpm --filter @svclens/web e2e
         env:
           CI: true
-      - run: pnpm apimap build examples/acme-demo
+      - run: pnpm svclens build examples/acme-demo
       - uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/main'
         with:

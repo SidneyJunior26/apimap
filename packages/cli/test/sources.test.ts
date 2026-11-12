@@ -40,26 +40,26 @@ describe('git source helpers', () => {
 
 describe('scan with git sources', () => {
   it('clones, scans and records the repository', async () => {
-    const remote = await mkdtemp(path.join(os.tmpdir(), 'apimap-remote-'));
+    const remote = await mkdtemp(path.join(os.tmpdir(), 'svclens-remote-'));
     const repoDir = path.join(remote, 'storefront-bff');
     await cp(FIXTURE, repoDir, { recursive: true });
     git(repoDir, 'init', '-q', '-b', 'main');
     git(repoDir, 'add', '-A', '-f');
     git(repoDir, 'commit', '-q', '-m', 'init');
 
-    const catalog = await mkdtemp(path.join(os.tmpdir(), 'apimap-cat-'));
-    await writeFile(path.join(catalog, 'apimap.config.yaml'), `sources:\n  - file://${repoDir}\n`);
+    const catalog = await mkdtemp(path.join(os.tmpdir(), 'svclens-cat-'));
+    await writeFile(path.join(catalog, 'svclens.config.yaml'), `sources:\n  - file://${repoDir}\n`);
     expect(await runScan(catalog, {})).toBe(0);
     const svc = parse(await readFile(path.join(catalog, 'services/storefront-bff.yaml'), 'utf8'));
     expect(svc).toMatchObject({ id: 'storefront-bff', kind: 'bff', repo: `${repoDir.replace(/^\//, '')}` });
-    expect(await readFile(path.join(catalog, '.apimap/.gitignore'), 'utf8')).toBe('*\n');
+    expect(await readFile(path.join(catalog, '.svclens/.gitignore'), 'utf8')).toBe('*\n');
 
     // Offline run reuses the cache.
     expect(await runScan(catalog, { fetch: false })).toBe(0);
   });
 
   it('reports a clone failure without aborting other sources', async () => {
-    const catalog = await mkdtemp(path.join(os.tmpdir(), 'apimap-cat-'));
+    const catalog = await mkdtemp(path.join(os.tmpdir(), 'svclens-cat-'));
     expect(await runScan(catalog, { source: ['file:///nonexistent/repo.git'] })).toBe(1);
   });
 });

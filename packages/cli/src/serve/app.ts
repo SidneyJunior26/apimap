@@ -1,6 +1,6 @@
 import { rm } from 'node:fs/promises';
 import path from 'node:path';
-import { buildGraph, loadCatalog, ServiceSchema, validateCatalog, writeServiceFile, type Service } from '@apimap/core';
+import { buildGraph, loadCatalog, ServiceSchema, validateCatalog, writeServiceFile, type Service } from '@svclens/core';
 import { Hono, type Context } from 'hono';
 import { streamSSE, type SSEStreamingApi } from 'hono/streaming';
 import { readStatic } from './static.js';
@@ -29,7 +29,7 @@ async function readJson(c: Context): Promise<unknown> {
   }
 }
 
-/** HTTP app for `apimap serve`: viewer assets, catalog API and live change events. */
+/** HTTP app for `svclens serve`: viewer assets, catalog API and live change events. */
 export function createServeApp(root: string, opts: ServeOptions) {
   const app = new Hono();
   const allowedHosts = new Set(LOCAL_HOSTS.map((h) => `${h}:${opts.port}`));
@@ -115,7 +115,7 @@ export function createServeApp(root: string, opts: ServeOptions) {
     if (!file) return c.text('viewer assets not found', 500);
     if (file.type.startsWith('text/html')) {
       // Tells the viewer it can use the editing API.
-      const html = file.body.toString('utf8').replace('<head>', '<head><meta name="apimap-editable" content="true">');
+      const html = file.body.toString('utf8').replace('<head>', '<head><meta name="svclens-editable" content="true">');
       return c.html(html);
     }
     return c.body(new Uint8Array(file.body), 200, { 'content-type': file.type });

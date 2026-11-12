@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { formatDiagnostics, runBuild, runValidate } from '../src/index.js';
 
 async function catalog(files: Record<string, string>): Promise<string> {
-  const dir = await mkdtemp(path.join(os.tmpdir(), 'apimap-'));
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'svclens-'));
   for (const [rel, text] of Object.entries(files)) {
     await mkdir(path.dirname(path.join(dir, rel)), { recursive: true });
     await writeFile(path.join(dir, rel), text);
@@ -41,7 +41,7 @@ describe('runValidate', () => {
 describe('runBuild', () => {
   let webDist: string;
   beforeEach(async () => {
-    webDist = await catalog({ 'index.html': '<!doctype html><title>apimap</title>', 'assets/app.js': '' });
+    webDist = await catalog({ 'index.html': '<!doctype html><title>svclens</title>', 'assets/app.js': '' });
   });
 
   it('writes graph.json and web assets', async () => {

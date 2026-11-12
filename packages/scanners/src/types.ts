@@ -1,4 +1,4 @@
-import type { Evidence, ScanHints, Service } from '@apimap/core';
+import type { Evidence, ScanHints, Service } from '@svclens/core';
 
 export interface RepoFiles {
   dir: string;
@@ -19,7 +19,7 @@ export interface Reference {
 export interface RepoScan {
   hints: ScanHints;
   references: Reference[];
-  /** Service declared by the repo owner in `apimap.yaml`, if any. */
+  /** Service declared by the repo owner in `svclens.yaml`, if any. */
   declared?: Partial<Service>;
   errors: Array<{ file: string; message: string }>;
 }

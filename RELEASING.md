@@ -1,6 +1,6 @@
 # Como publicar uma versão
 
-O pacote publicado no npm é um só, `apimap`, gerado a partir de `packages/cli`. Ele já leva dentro o core, os scanners e o visualizador; os pacotes `@apimap/*` do monorepo são internos e marcados como `private`.
+O pacote publicado no npm é um só, `svclens`, gerado a partir de `packages/cli`. Ele já leva dentro o core, os scanners e o visualizador; os pacotes `@svclens/*` do monorepo são internos e marcados como `private`.
 
 ## Primeira publicação (manual)
 
@@ -20,14 +20,14 @@ Antes de publicar, dá para conferir o conteúdo do pacote com `npm pack --dry-r
 
 ## Configurar a publicação automática
 
-1. No npmjs.com, abra o pacote `apimap`, vá em Settings e, em "Trusted Publisher", escolha GitHub Actions com:
+1. No npmjs.com, abra o pacote `svclens`, vá em Settings e, em "Trusted Publisher", escolha GitHub Actions com:
    - Organization or user: `SidneyJunior26`
-   - Repository: `apimap`
+   - Repository: `svclens`
    - Workflow filename: `release.yml`
    - Environment: `npm`
 2. No GitHub, crie o environment `npm` em Settings → Environments (pode exigir aprovação manual antes de publicar, se quiser).
 
-Com isso nenhum token fica guardado no repositório. Se preferir usar um token, crie um "Granular Access Token" no npm com permissão de publicação só para o pacote `apimap` e salve como secret `NPM_TOKEN` no environment `npm`.
+Com isso nenhum token fica guardado no repositório. Se preferir usar um token, crie um "Granular Access Token" no npm com permissão de publicação só para o pacote `svclens` e salve como secret `NPM_TOKEN` no environment `npm`.
 
 ## Publicar uma nova versão
 
