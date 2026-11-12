@@ -1,6 +1,6 @@
 # Changelog
 
-## Não lançado
+## 0.2.0
 
 - O scan lê `Web.config`, `App.config`, transformações (`Web.Release.config`), NLog, log4net e `appsettings*.json`, e não só o que parece uma URL: connection strings, `appSettings`, endpoints de cliente WCF, servidor SMTP e destinos de log e telemetria (Serilog, NLog, log4net, Application Insights). JSON com comentários e vírgula sobrando é aceito.
 - Conexões de banco são identificadas pelo provider (SQL Server, PostgreSQL, MySQL, Oracle, MongoDB, Redis) e viram relações `sql`, `mongodb` ou `redis`. Destinos de log viram `logs`. Com `--create-stubs`, os nós criados são `database` e `logs`, um por host.
