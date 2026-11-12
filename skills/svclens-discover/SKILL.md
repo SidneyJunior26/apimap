@@ -53,6 +53,6 @@ Objetivo: completar o catálogo svclens de um ou mais repositórios. O scanner d
 
 - Nunca grave no catálogo URLs completas, credenciais, tokens, connection strings ou segredos. Só hosts e evidência `arquivo:linha`.
 - Nunca edite dependências com `origin: manual` e nunca mexa em serviços com `locked: true`.
-- Não duplique o que o scanner já registrou (`origin: scan`).
+- Não duplique o que o scanner já registrou (`origin: scan`). Ele já lê `Web.config`, `appsettings*.json`, NLog, log4net, connection strings, endpoints WCF e destinos de log, então procure o que está só no código. Confira a seção "report" do scan: arquivos ignorados e relações inconclusivas são o melhor ponto de partida.
 - Não leia arquivos `.env` reais nem cofres de segredos.
 - Prefira poucas ligações verificadas a muitos palpites. Na dúvida, liste no resumo em vez de registrar.

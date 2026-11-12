@@ -1,5 +1,14 @@
 # Changelog
 
+## Não lançado
+
+- O scan lê `Web.config`, `App.config`, transformações (`Web.Release.config`), NLog, log4net e `appsettings*.json`, e não só o que parece uma URL: connection strings, `appSettings`, endpoints de cliente WCF, servidor SMTP e destinos de log e telemetria (Serilog, NLog, log4net, Application Insights). JSON com comentários e vírgula sobrando é aceito.
+- Conexões de banco são identificadas pelo provider (SQL Server, PostgreSQL, MySQL, Oracle, MongoDB, Redis) e viram relações `sql`, `mongodb` ou `redis`. Destinos de log viram `logs`. Com `--create-stubs`, os nós criados são `database` e `logs`, um por host.
+- A evidência das dependências ganha `key` (chave ou seção) e `env` (ambiente), exibidos no detalhe do nó.
+- Repositórios com vários projetos de aplicação viram um serviço por projeto.
+- Relatório do scan com arquivos analisados, padrões encontrados, itens removidos por segurança (só contagem), relações inconclusivas e arquivos ignorados. Novas opções `--json` e `--verbose`.
+- URLs de banco em arquivos `.env.example` e similares (`postgres://`, `mongodb://`, `redis://`) passam a ser lidas, sem gravar as credenciais.
+
 ## 0.1.1
 
 - Corrige o caminho do comando `svclens` no `package.json`, que o npm precisava corrigir a cada publicação.
