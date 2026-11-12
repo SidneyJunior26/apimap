@@ -16,7 +16,7 @@ Os serviços ficam em arquivos YAML no Git. O <code>svclens</code> lê os reposi
 <p>
   <a href="https://github.com/SidneyJunior26/svclens/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/SidneyJunior26/svclens/ci.yml?branch=main&style=flat-square&label=CI"></a>
   <a href="https://www.npmjs.com/package/svclens"><img alt="npm" src="https://img.shields.io/npm/v/svclens?style=flat-square&color=0f766e"></a>
-  <a href="LICENSE"><img alt="Licença MIT" src="https://img.shields.io/github/license/SidneyJunior26/svclens?style=flat-square&color=0f766e"></a>
+  <a href="LICENSE"><img alt="Licença MIT" src="https://img.shields.io/badge/licen%C3%A7a-MIT-0f766e?style=flat-square"></a>
   <img alt="Node 20 ou mais novo" src="https://img.shields.io/badge/node-%E2%89%A5%2020-0f766e?style=flat-square">
 </p>
 
