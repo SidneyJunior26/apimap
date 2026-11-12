@@ -1,10 +1,44 @@
-# apimap
+<div align="center">
 
-O apimap monta um grafo interativo das APIs de uma empresa e de como elas se chamam. Entram no mapa BFFs, APIs core, aplicações web, workers, webservices SOAP, websockets, gRPC, filas, bancos de dados, FTP, sistemas legados e fornecedores externos. O mapa vem de arquivos YAML guardados no Git, e boa parte deles pode ser gerada lendo o código dos repositórios.
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.svg">
+    <img src="docs/assets/logo-light.svg" alt="apimap" height="64">
+  </picture>
+</h1>
 
-Demonstração com dados fictícios: https://sidneyjunior26.github.io/apimap/
+<strong>Mapa interativo das APIs de uma empresa e de como elas se chamam, montado a partir do código.</strong>
 
-## O problema
+<p>
+Os serviços ficam em arquivos YAML no Git. O <code>apimap</code> lê os repositórios para preencher as dependências, desenha o grafo em 2D ou 3D e mostra, em cada ligação, onde ela foi encontrada.
+</p>
+
+<p>
+  <a href="https://github.com/SidneyJunior26/apimap/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/SidneyJunior26/apimap/ci.yml?branch=main&style=flat-square&label=CI"></a>
+  <a href="https://www.npmjs.com/package/apimap"><img alt="npm" src="https://img.shields.io/npm/v/apimap?style=flat-square&color=0f766e"></a>
+  <a href="LICENSE"><img alt="Licença MIT" src="https://img.shields.io/github/license/SidneyJunior26/apimap?style=flat-square&color=0f766e"></a>
+  <img alt="Node 20 ou mais novo" src="https://img.shields.io/badge/node-%E2%89%A5%2020-0f766e?style=flat-square">
+</p>
+
+<a href="https://sidneyjunior26.github.io/apimap/"><strong>Demonstração ao vivo</strong></a>
+· <a href="#instalação">Instalação</a>
+· <a href="#primeiros-passos">Primeiros passos</a>
+· <a href="#como-funciona">Como funciona</a>
+· <a href="#descoberta-automática">Descoberta</a>
+· <a href="#editor-local-e-propostas-por-pull-request">Editor</a>
+· <a href="#perguntas-frequentes">Perguntas</a>
+
+</div>
+
+<p align="center">
+  <a href="https://sidneyjunior26.github.io/apimap/">
+    <img src="docs/assets/screenshots/overview-dark.webp" alt="Grafo com 50 serviços fictícios, coloridos por tipo, e o painel lateral com busca e filtros" width="100%">
+  </a>
+  <br>
+  <sub>Catálogo de demonstração com dados fictícios. Na versão ao vivo dá para clicar nos serviços.</sub>
+</p>
+
+## Por que existe
 
 Em empresas grandes, o número de serviços cresce mais rápido do que a documentação. Um time cria um BFF novo, outro passa a consumir uma API core por um atalho, um worker começa a ler uma fila que ninguém lembrava que existia, e o webservice SOAP de dez anos atrás continua recebendo chamadas de um sistema em Delphi. Cada mudança faz sentido isolada. Somadas, deixam a empresa sem uma resposta confiável para perguntas simples:
 
@@ -13,98 +47,180 @@ Em empresas grandes, o número de serviços cresce mais rápido do que a documen
 - Ainda tem alguém chamando o serviço que queremos desligar?
 - Por onde passa uma requisição do app até o banco de dados?
 
-Normalmente quem responde é alguém que está há anos na empresa, ou um diagrama no wiki que ficou desatualizado na semana seguinte. Ferramentas de observabilidade mostram o tráfego que aconteceu, mas não cobrem o que roda uma vez por mês, o que está em homologação ou o que só aparece numa connection string.
+Hoje quem responde é alguém que está há anos na empresa, ou um diagrama no wiki que ficou desatualizado na semana seguinte. Ferramentas de observabilidade mostram o tráfego que aconteceu, mas não cobrem o que roda uma vez por mês, o que está em homologação ou o que só aparece numa connection string.
 
-O apimap guarda essa informação junto do código, num formato que dá para revisar em pull request, e mostra cada ligação com a evidência de onde ela foi encontrada.
+O apimap guarda essa informação junto do código, num formato que dá para revisar em pull request, e mostra cada ligação com a evidência de onde ela veio.
 
-## Como funciona
+## O que ele faz
 
-Cada serviço é um arquivo YAML em `services/`. As dependências ficam no próprio arquivo e cada uma diz de onde veio: `confirmed` quando foi encontrada em código ou configuração, `inferred` quando um agente de IA deduziu lendo o código, `manual` quando alguém cadastrou. Sempre que possível, a dependência aponta o `arquivo:linha` em que aparece.
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <b>Catálogo em YAML</b><br>
+      Um arquivo por serviço, no repositório do código ou num repositório só para o mapa. Uma mudança no mapa vira diff e passa por revisão como qualquer outra.
+    </td>
+    <td width="50%" valign="top">
+      <b>Descoberta nos repositórios</b><br>
+      O scan lê arquivos de configuração, projetos .NET e Node, OpenAPI e docker-compose, e preenche as dependências sem apagar o que foi escrito à mão.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <b>Evidência em cada ligação</b><br>
+      Toda seta diz se foi confirmada no código, inferida por um agente de IA ou cadastrada por uma pessoa, e aponta o arquivo e a linha em que apareceu.
+    </td>
+    <td width="50%" valign="top">
+      <b>Grafo 2D e 3D</b><br>
+      Busca, filtros por tipo e grupo, e a visão de impacto: quem depende de um serviço (upstream) e do que ele depende (downstream), na profundidade que você escolher.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <b>Edição sem abrir o YAML</b><br>
+      O editor local grava direto nos arquivos. No site publicado, o botão de propor mudança leva ao GitHub, e o pull request sai de lá.
+    </td>
+    <td width="50%" valign="top">
+      <b>Saídas prontas para documentar</b><br>
+      Diagrama Mermaid para colar no README, imagem PNG da tela atual e um diff entre versões do catálogo para comentar em pull requests.
+    </td>
+  </tr>
+</table>
 
-O comando `apimap scan` lê os repositórios e atualiza esses arquivos. Ele não apaga nem altera o que foi cadastrado à mão. Para cadastrar ou corrigir serviços sem abrir o YAML, use `apimap serve`, que sobe um editor local. O comando `apimap build` transforma o catálogo num site estático que pode ficar no GitHub Pages, num bucket S3 ou num servidor interno.
+## Veja funcionando
 
-No visualizador, cada tipo de serviço tem uma cor. Partículas andam pelas arestas no sentido da chamada, os grupos (domínios) ganham uma área própria e, ao clicar num serviço, dá para ver quem depende dele (upstream) e do que ele depende (downstream), com a profundidade que você escolher.
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/assets/screenshots/detail-downstream.webp" alt="Serviço Orders API selecionado, com as dependências destacadas no grafo e a lista no painel lateral">
+      <br><sub>Clique num serviço para ver o que ele chama. Cada dependência mostra o protocolo, a confiança e o arquivo onde apareceu.</sub>
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/assets/screenshots/editor.webp" alt="Formulário de edição do serviço Payments API sobre o grafo">
+      <br><sub>O editor local grava no arquivo do serviço e preserva os comentários do YAML.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/assets/screenshots/overview-light.webp" alt="O mesmo grafo no tema claro">
+      <br><sub>Tema claro, para quem vai imprimir ou colar a imagem num documento.</sub>
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/assets/screenshots/view-3d.webp" alt="O grafo em três dimensões">
+      <br><sub>Modo 3D, pensado para apresentações. Filtros e busca valem nos dois modos.</sub>
+    </td>
+  </tr>
+</table>
 
-### 3D, tema claro e imagem
+## Instalação
 
-A barra no canto inferior esquerdo tem três botões além do zoom. "3D" troca para uma visão em três dimensões, pensada para apresentações: os serviços viram esferas com brilho, a câmera gira com o mouse e voa até o serviço selecionado. Filtros, busca e upstream/downstream continuam valendo. O código do 3D só é baixado quando alguém abre esse modo.
+Precisa do Node.js 20 ou mais novo.
 
-"Light" e "Dark" alternam entre o tema escuro e um tema claro em tom de papel, em que as cores dos tipos ficam mais escuras para manter o contraste. "PNG" baixa a visão atual como imagem, com o fundo do tema e o nome do catálogo no rodapé.
+```bash
+npm install -g apimap
+apimap --version
+```
 
-O modo e o tema ficam na URL (`?view=3d&theme=paper`), então um link compartilhado abre do mesmo jeito. Sem parâmetros, o tema segue a preferência do sistema. Se o navegador não tiver WebGL, o 3D avisa e volta para o 2D.
+Para usar sem instalar, troque `apimap` por `npx apimap` nos comandos abaixo.
 
-## Início rápido
+<details>
+<summary>Instalar a partir do código-fonte</summary>
 
 ```bash
 git clone https://github.com/SidneyJunior26/apimap.git
 cd apimap
 pnpm install
 pnpm build
-pnpm apimap validate examples/acme-demo
-pnpm apimap build examples/acme-demo   # gera examples/acme-demo/dist
+pnpm apimap --version
 ```
 
-Para abrir o resultado, sirva a pasta com qualquer servidor estático, por exemplo `npx serve examples/acme-demo/dist`.
+Com o pnpm, o comando é `pnpm apimap` dentro da pasta do repositório.
 
-## Estrutura do catálogo
+</details>
+
+## Primeiros passos
+
+### 1. Crie uma pasta com um serviço
 
 ```
 meu-catalogo/
-  apimap.config.yaml      # opcional: nome, fontes, tipos e grupos
   services/
-    payments-core.yaml
-    identity-api.yaml
+    orders-api.yaml
 ```
 
 ```yaml
-# services/payments-core.yaml
-id: payments-core
-name: Payments Core API
+# services/orders-api.yaml
+id: orders-api
+name: Orders API
 kind: core
-group: payments
-owner: team-payments
-repo: github.com/acme/payments-core
-tech: [dotnet8]
-hosts: [payments.acme.internal]
+owner: team-orders
+hosts: [orders.acme.internal]
 dependsOn:
-  - target: identity-api
-    protocol: http          # http | soap | ws | grpc | graphql | amqp | kafka | sql | ftp | ...
-    confidence: confirmed   # confirmed | inferred | manual
-    origin: scan            # scan | agent | manual
-    evidence: [{ file: src/Clients/IdentityClient.cs, line: 42 }]
+  - target: payments-api
+    protocol: http
 ```
 
-Se uma dependência aponta para um serviço que ainda não está no catálogo, ele aparece no grafo como um nó tracejado ("fantasma"). Assim a ligação não some só porque falta um cadastro.
+O `kind` define a cor e a forma no grafo. Os tipos nativos são `bff`, `core`, `web`, `worker`, `webservice`, `websocket`, `grpc`, `graphql`, `queue`, `database`, `ftp`, `logs`, `external` e `legacy`. Dá para criar outros na configuração.
 
-Para ter autocompletar no editor, coloque esta linha no topo do arquivo:
+### 2. Confira se está tudo certo
 
-```yaml
-# yaml-language-server: $schema=https://raw.githubusercontent.com/SidneyJunior26/apimap/main/packages/core/schema/service.schema.json
+```bash
+apimap validate meu-catalogo
 ```
 
-### Tipos de serviço
+### 3. Abra o editor e o grafo
 
-Os tipos nativos são `bff`, `core`, `web`, `worker`, `webservice`, `websocket`, `grpc`, `graphql`, `queue`, `database`, `ftp`, `logs`, `external` e `legacy`. Você pode criar outros e trocar as cores no `apimap.config.yaml`:
-
-```yaml
-# apimap.config.yaml
-name: Acme API Map
-sources:
-  - ../repos/*            # cada diretório é um repositório a ser escaneado
-scan:
-  internalDomains:        # domínios da empresa; hosts neles nunca viram "external"
-    - acme.internal       # o próprio domínio e qualquer subdomínio
-    - '*.corp.example'    # só subdomínios
-kinds:
-  delphi: { label: Delphi app, color: '#fb7185' }
-groups:
-  payments: { label: Pagamentos, color: '#facc15' }
+```bash
+apimap serve meu-catalogo --open
 ```
+
+### 4. Deixe o apimap descobrir o resto
+
+Aponte as pastas (ou URLs git) dos repositórios no `apimap.config.yaml` e rode o scan. Os detalhes estão em [Descoberta automática](#descoberta-automática).
+
+```bash
+apimap scan meu-catalogo
+```
+
+### 5. Publique
+
+O comando abaixo gera um site estático que pode ir para o GitHub Pages, um bucket S3 ou um servidor interno.
+
+```bash
+apimap build meu-catalogo     # site em meu-catalogo/dist
+```
+
+> [!TIP]
+> Quer ver antes de montar o seu? Clone o repositório e rode `pnpm apimap serve examples/acme-demo --open`. É o mesmo catálogo fictício da demonstração.
+
+## Como funciona
+
+```mermaid
+flowchart LR
+  repos[Repositórios] -->|apimap scan| yaml[(Catálogo YAML<br>no Git)]
+  agente[Agente de IA] -->|apimap link| yaml
+  pessoas[Pessoas] -->|apimap serve<br>ou pull request| yaml
+  yaml --> build[apimap build]
+  yaml --> export[apimap export]
+  yaml --> diff[apimap diff]
+  build --> site[Site estático<br>2D e 3D]
+  export --> mermaid[Diagrama Mermaid]
+  diff --> pr[Comentário no PR]
+```
+
+Três coisas escrevem no catálogo: o scan, um agente de IA e uma pessoa. Cada ligação guarda quem a escreveu, e isso decide o que acontece no próximo scan.
+
+| Confiança | Origem | Como aparece | O que o scan faz com ela |
+| --- | --- | --- | --- |
+| `confirmed` | `scan` | Seta cheia | Recria a cada execução e remove se o código deixou de citar o serviço |
+| `inferred` | `agent` | Seta tracejada | Não mexe |
+| `manual` | `manual` | Seta fina | Não mexe |
+
+Serviços que aparecem como alvo mas não têm arquivo viram um nó tracejado ("fantasma"). Assim a ligação não some só porque falta um cadastro. O botão "Add to catalog" no editor local resolve isso.
 
 ## Descoberta automática
 
 ```bash
-apimap scan meu-catalogo                       # usa "sources" do apimap.config.yaml
+apimap scan meu-catalogo                          # usa "sources" do apimap.config.yaml
 apimap scan meu-catalogo -s '../repos/*' --dry-run
 ```
 
@@ -112,56 +228,82 @@ O scanner procura nestes lugares:
 
 | Fonte | O que extrai |
 | --- | --- |
-| Arquivos de configuração (`*.json`, `*.yaml`, `*.xml`, `*.config`, `.env.example` etc.) | URLs `http`, `ws`, `amqp`, `kafka`, `grpc` e `ftp`. Endereços terminados em `.svc` ou `.asmx`, ou com `?wsdl`, são marcados como `soap` |
+| Arquivos de configuração (`*.json`, `*.yaml`, `*.xml`, `*.config`, `.env.example` e similares) | URLs `http`, `ws`, `amqp`, `kafka`, `grpc` e `ftp`. Endereços terminados em `.svc` ou `.asmx`, ou com `?wsdl`, viram `soap` |
 | .NET (`*.csproj`, `appsettings*.json`, `Web.config`) | Versão do framework, pacotes como Refit, RabbitMQ, Kafka e gRPC, se o projeto é worker ou webservice, e o host do banco nas connection strings |
 | Node (`package.json`) | Nome, descrição, stack e um tipo sugerido |
 | OpenAPI ou Swagger | Nome, descrição e os hosts do próprio serviço |
 | docker-compose | O `depends_on` dos serviços construídos a partir do repositório |
-| `apimap.yaml` na raiz do repositório | A descrição que o dono do serviço escreveu, que tem prioridade sobre o que o scan encontrou |
+| `apimap.yaml` na raiz do repositório | A descrição que o dono do serviço escreveu, que vale mais do que o scan |
 
-Regras de atualização do catálogo:
+Cada URL encontrada é comparada com o campo `hosts` dos serviços do catálogo. Quando mais de um combina, vence o prefixo `host/caminho` mais longo. É por isso que vale preencher `hosts` nos serviços: sem ele o scan não sabe de quem é aquele endereço.
 
-- Cada URL encontrada é comparada com o campo `hosts` dos serviços. Quando mais de um combina, vence o prefixo `host/caminho` mais longo. Nomes sem domínio, como os do docker-compose, são comparados com o `id`.
-- O scan só substitui dependências com `origin: scan`. As de origem `agent` e `manual` ficam como estão, e um serviço com `locked: true` não é alterado.
-- Comentários e formatação dos YAML são preservados. Se nada mudou nos repositórios, rodar o scan de novo não reescreve nenhum arquivo.
-- Hosts que não pertencem a nenhum serviço aparecem no relatório, separados em internos e externos. Internos são os que estão em `scan.internalDomains` (ou na opção `--internal-domain`, que pode ser repetida) e os nomes sem ponto.
-- A opção `--create-stubs` cadastra como `external` os hosts externos sem dono. Hosts internos nunca viram stub: o certo é adicioná-los ao `hosts` do serviço que os atende.
-- URLs completas, usuários, senhas e arquivos `.env` reais não são lidos nem gravados. O catálogo guarda só o host e o `arquivo:linha` da evidência.
+> [!IMPORTANT]
+> O catálogo guarda só o host e o `arquivo:linha` da evidência. URLs completas, usuários, senhas e connection strings não são gravados, e arquivos `.env` reais nem são lidos (só `.env.example`, `.env.sample`, `.env.template` e `.env.development`).
+
+<details>
+<summary>Repositórios git como fonte</summary>
+
+Além de pastas locais, `sources` aceita URLs git. O scan faz um clone raso em `.apimap/repos/` (pasta ignorada pelo git) com as credenciais git que já existem na máquina, como o SSH ou o gerenciador de credenciais.
+
+```yaml
+sources:
+  - ../repos/*
+  - git@github.com:minha-empresa/orders-api.git
+  - https://github.com/minha-empresa/payments-api.git
+```
+
+Nas execuções seguintes ele atualiza o clone. Com `--no-fetch`, usa a cópia que já está no disco. Serviços vindos de um repositório git recebem o campo `repo` sem credenciais. URLs que tentam passar opções ao git ou usar o transporte `ext::` são recusadas.
+
+</details>
+
+<details>
+<summary>Hosts sem dono e domínios internos</summary>
+
+Hosts que não pertencem a nenhum serviço aparecem no relatório do scan, separados em internos e externos. São internos os domínios de `scan.internalDomains` (ou da opção `--internal-domain`, que pode ser repetida) e os nomes sem ponto, como os do docker-compose.
+
+```yaml
+scan:
+  internalDomains:
+    - acme.internal       # o próprio domínio e qualquer subdomínio
+    - '*.corp.example'    # só subdomínios
+```
+
+`--create-stubs` cadastra como `external` os hosts externos sem dono. Hosts internos nunca viram stub: o certo é colocá-los no `hosts` do serviço que os atende.
+
+</details>
+
+<details>
+<summary>O que o scan nunca altera</summary>
+
+O scan só substitui dependências com `origin: scan`. As de origem `agent` e `manual` ficam como estão, e um serviço com `locked: true` não é tocado. Os comentários e a formatação dos YAML são preservados, e rodar o scan de novo sem mudanças nos repositórios não reescreve nenhum arquivo.
+
+</details>
 
 ### Skills para agentes de IA
 
-A pasta [`skills/`](skills) tem instruções prontas para agentes de código:
+O scan só enxerga o que está em arquivos de configuração. Chamadas que aparecem só no código (um `HttpClient`, um `fetch`, um proxy WCF, uma fila) ficam para um agente. A pasta [`skills/`](skills) tem instruções prontas, em Markdown simples, para qualquer agente de código:
 
-- [`apimap-discover`](skills/apimap-discover/SKILL.md) roda o scan, procura no código chamadas que a configuração não mostra (HttpClient, fetch, axios, WCF, SignalR, filas) e registra cada uma com `apimap link` como `inferred`, junto com a evidência.
-- [`apimap-add`](skills/apimap-add/SKILL.md) cadastra um serviço novo fazendo poucas perguntas e valida o resultado.
+- [`apimap-discover`](skills/apimap-discover/SKILL.md) roda o scan, lê o código atrás do que faltou e registra cada achado com `apimap link` como `inferred`, junto com a evidência.
+- [`apimap-add`](skills/apimap-add/SKILL.md) cadastra um serviço novo com poucas perguntas e valida o resultado.
 
-## Editor local
+## Editor local e propostas por pull request
 
-```bash
-apimap serve meu-catalogo --open
-```
+O `apimap serve` abre o visualizador em `http://localhost:4321` com edição ligada. O botão "New service" cria um serviço, e o painel de detalhes ganha "Edit" e "Delete". Tudo vai para os YAML de `services/`, com os comentários preservados, e dá para revisar com `git diff` antes de abrir o pull request.
 
-O comando abre o visualizador em `http://localhost:4321` com edição ligada. O botão "New service" cria um serviço, e o painel de detalhes ganha "Edit" e "Delete". Um nó fantasma pode ser cadastrado direto pelo botão "Add to catalog". Tudo vai para os YAML de `services/`, com os comentários preservados, e dá para revisar as mudanças com `git diff` antes de abrir o pull request.
-
-Algumas regras do editor:
-
-- Antes de excluir, a confirmação mostra quais serviços dependem daquele. Depois da exclusão, essas ligações passam a apontar para um nó fantasma.
-- Editar uma dependência encontrada pelo scan transforma ela em `manual`, para que o próximo scan não desfaça a alteração.
-- Serviços com `locked: true` aparecem sem os botões de edição.
-- Se um arquivo mudar por fora (no editor de texto ou num `apimap scan`), o navegador atualiza sozinho e os nós que já existiam ficam no lugar.
+- Antes de excluir, a confirmação mostra quais serviços dependem daquele.
+- Editar uma dependência encontrada pelo scan a transforma em `manual`, para o próximo scan não desfazer a alteração.
+- Se um arquivo mudar por fora, no editor de texto ou num `apimap scan`, o navegador atualiza sozinho e os nós ficam no lugar.
 - O servidor só aceita conexões da própria máquina e recusa pedidos vindos de outros sites.
 
-## Propor mudanças pelo site publicado
-
-Quem abre o site gerado pelo `apimap build` não precisa clonar o repositório para corrigir o mapa. Com o catálogo hospedado no GitHub, aparecem os botões "Propose service", "Propose edit" e "Propose removal". O formulário é o mesmo do editor local; no final, o site abre o GitHub:
+No site publicado não há servidor, mas quem está olhando o mapa também pode corrigi-lo. Quando o catálogo está no GitHub, aparecem os botões "Propose service", "Propose edit" e "Propose removal". O formulário é o mesmo; no fim, o site abre o GitHub:
 
 - Serviço novo: a página de criar arquivo já vem com o YAML preenchido.
 - Edição: o YAML novo vai para a área de transferência e o GitHub abre o editor do arquivo, onde é só colar.
 - Exclusão: abre a página de excluir o arquivo.
 
-Em todos os casos é o GitHub que cria a branch (ou o fork, para quem não tem permissão de escrita) e o pull request. O site não pede login nem token.
+Quem cria a branch (ou o fork, para quem não pode escrever no repositório) e o pull request é o GitHub. O site não pede login nem token.
 
-O `apimap build` descobre o repositório pelo remote `origin` quando ele está no GitHub. Para escolher outro repositório, ou desligar os botões, use o `apimap.config.yaml`:
+O `apimap build` descobre o repositório pelo remote `origin`. Para apontar outro, ou desligar os botões, use o `apimap.config.yaml`:
 
 ```yaml
 edit:
@@ -171,64 +313,217 @@ edit:
 # edit: false          # desliga os botões
 ```
 
-Ao editar pelo site, comentários do arquivo YAML original não são levados para a proposta, porque o site publicado só conhece o `graph.json`.
-
-## Repositórios git como fonte
-
-Além de pastas locais, `sources` aceita URLs git. O scan faz um clone raso de cada repositório em `.apimap/repos/` (pasta ignorada pelo git) usando as credenciais git da máquina, como o SSH ou o gerenciador de credenciais:
-
-```yaml
-sources:
-  - ../repos/*
-  - git@github.com:minha-empresa/orders-api.git
-  - https://github.com/minha-empresa/payments-api.git
-```
-
-Nas execuções seguintes ele atualiza o clone. Com `--no-fetch`, usa a cópia que já está no disco. Serviços que vieram de um repositório git ganham o campo `repo` preenchido, sem credenciais. URLs que tentam passar opções para o git ou usar o transporte `ext::` são recusadas.
+> [!NOTE]
+> Ao propor uma edição pelo site, os comentários do YAML original não vão junto, porque o site publicado só conhece o `graph.json`. O formulário avisa isso. Por enquanto só o GitHub é suportado para propostas.
 
 ## Mermaid e diferenças entre versões
 
-`apimap export --format mermaid` gera um diagrama Mermaid do catálogo, com os grupos como subgráficos e o estilo da seta indicando a confiança da ligação. O GitHub, o GitLab e várias wikis desenham esse formato direto no Markdown. No site, o botão "Mermaid" copia o diagrama só dos serviços visíveis com os filtros atuais.
+`apimap export --format mermaid` gera um diagrama que o GitHub, o GitLab e várias wikis desenham direto no Markdown. O exemplo abaixo foi gerado do catálogo de demonstração, só com os vizinhos diretos de Orders API:
 
-`apimap diff` compara o catálogo atual com uma referência git (por padrão `origin/main`) e lista serviços e ligações que entraram, saíram ou mudaram. Com `--format markdown`, a saída serve de comentário em pull request. Um exemplo de passo no GitHub Actions:
-
-```yaml
-- run: npx apimap diff catalogo --base origin/${{ github.base_ref }} --format markdown > diff.md
-- run: gh pr comment ${{ github.event.pull_request.number }} --body-file diff.md
-  env:
-    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```mermaid
+flowchart LR
+  subgraph g_commerce["Commerce"]
+    mobile_bff["Mobile BFF"]
+    orders_api["Orders API"]
+    orders_db[("Orders DB")]
+    orders_events[["Order Events"]]
+  end
+  subgraph g_logistics["Logistics"]
+    inventory_api["Inventory API"]
+    shipping_api["Shipping API"]
+  end
+  subgraph g_partners["Partners & Vendors"]
+    partner_gateway["Partner Gateway"]
+  end
+  subgraph g_payments["Payments"]
+    payments_api["Payments API"]
+  end
+  subgraph g_platform["Platform"]
+    audit_logs["Audit Log Store"]
+    backoffice_bff["Backoffice BFF"]
+  end
+  backoffice_bff --> orders_api
+  mobile_bff --> orders_api
+  orders_api --> audit_logs
+  orders_api --> inventory_api
+  orders_api -->|sql| orders_db
+  orders_api -->|amqp| orders_events
+  orders_api --> payments_api
+  orders_api --> shipping_api
+  partner_gateway --> orders_api
+  shipping_api --> orders_api
 ```
 
-## CLI
+O estilo da seta segue a confiança: cheia para `confirmed`, tracejada para `inferred`, grossa para `manual`. No site, o botão "Mermaid" da barra copia o diagrama dos serviços visíveis com os filtros atuais.
+
+`apimap diff` compara o catálogo atual com uma referência git (por padrão `origin/main`) e lista o que entrou, saiu ou mudou. Com `--format markdown`, a saída serve de comentário em pull request:
+
+> ### apimap
+>
+> **+1** services, **-1** services, **~0** changed · **+2** links, **-2** links, **~1** changed
+>
+> #### Services added
+> - `loyalty-api` Loyalty API (core)
+>
+> #### Services removed
+> - `reports-legacy` Relatórios Legado
+>
+> #### Links added
+> - `loyalty-api` → `customers-api` (http, manual)
+> - `loyalty-api` → `orders-events` (amqp, inferred)
+>
+> #### Links removed
+> - `reports-legacy` → `billing-db` (sql)
+> - `reports-legacy` → `orders-db` (sql)
+>
+> #### Links with new confidence
+> - `payments-api` → `riskshield` (http): inferred → confirmed
+
+<details>
+<summary>Comentar o diff automaticamente nos pull requests</summary>
+
+```yaml
+# .github/workflows/mapa.yml
+name: Mapa de APIs
+on: pull_request
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npx apimap validate catalogo --strict
+      - run: npx apimap diff catalogo --base origin/${{ github.base_ref }} --format markdown > diff.md
+      - run: gh pr comment ${{ github.event.pull_request.number }} --body-file diff.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+</details>
+
+## Configuração
+
+Tudo é opcional. O arquivo `apimap.config.yaml` fica na raiz do catálogo.
+
+```yaml
+name: Acme API Map           # título do mapa
+sources:                      # onde o scan procura repositórios
+  - ../repos/*
+  - git@github.com:minha-empresa/orders-api.git
+scan:
+  internalDomains:            # domínios da empresa, que nunca viram "external"
+    - acme.internal
+kinds:                        # tipos novos, ou cores diferentes dos nativos
+  delphi: { label: Delphi app, color: '#fb7185' }
+groups:                       # nomes e cores dos grupos (domínios)
+  payments: { label: Pagamentos, color: '#facc15' }
+edit:                         # destino das propostas de mudança (padrão: remote origin)
+  repo: minha-empresa/mapa-de-apis
+  branch: main
+  path: catalogo
+```
+
+Os arquivos de serviço têm um JSON Schema. Para ter autocompletar e validação no editor, coloque no topo do YAML:
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SidneyJunior26/apimap/main/packages/core/schema/service.schema.json
+```
+
+## Referência da CLI
 
 | Comando | O que faz |
 | --- | --- |
 | `apimap validate [dir] [--strict]` | Confere o schema, ids duplicados, tipos desconhecidos, alvos sem cadastro e serviços sem owner. Com `--strict`, avisos também fazem o comando falhar. |
-| `apimap build [dir] [-o saida]` | Valida o catálogo e gera o visualizador com o `graph.json` em `saida` (por padrão, `<dir>/dist`). |
-| `apimap scan [dir] [-s fonte] [-i domínio] [--dry-run] [--create-stubs] [--no-fetch]` | Lê os repositórios (pastas ou URLs git) e atualiza serviços e dependências no catálogo. |
+| `apimap build [dir] [-o saida]` | Valida o catálogo e gera o site com o `graph.json` em `saida` (por padrão, `<dir>/dist`). |
+| `apimap serve [dir] [-p porta] [--open]` | Abre o editor local (porta 4321 por padrão, só para a própria máquina). |
+| `apimap scan [dir] [-s fonte] [-i domínio] [--dry-run] [--create-stubs] [--no-fetch]` | Lê os repositórios (pastas ou URLs git) e atualiza serviços e dependências. |
 | `apimap link <origem> <alvo> [-d dir] [-p protocolo] [-c confiança] [-e arquivo:linha] [-n nota]` | Adiciona ou atualiza uma dependência sem mexer nos comentários do arquivo. As skills usam este comando. |
-| `apimap serve [dir] [-p porta] [--open]` | Abre o editor local para criar, editar e excluir serviços (porta padrão 4321, só para a própria máquina). |
 | `apimap export [dir] [-f mermaid] [-o arquivo] [--direction LR\|TB]` | Exporta o catálogo como diagrama Mermaid. |
 | `apimap diff [dir] [-b ref] [-f text\|markdown]` | Mostra o que mudou desde uma referência git. |
+
+## Perguntas frequentes
+
+<details>
+<summary>Preciso instalar algo nos meus serviços?</summary>
+
+Não. O apimap só lê arquivos. Nada roda junto das aplicações e nenhum agente fica em produção.
+
+</details>
+
+<details>
+<summary>Algum dado sai da minha máquina?</summary>
+
+Não. O scan roda localmente, o site gerado é estático e não faz chamadas para fora, e a exportação de PNG e Mermaid acontece no navegador. Os botões de proposta só abrem links do GitHub no seu navegador.
+
+</details>
+
+<details>
+<summary>Funciona com GitLab ou Bitbucket?</summary>
+
+O scan aceita qualquer servidor git como fonte. Os botões de propor mudança por pull request, por enquanto, só existem para o GitHub.
+
+</details>
+
+<details>
+<summary>O scan registrou uma ligação que não existe. E agora?</summary>
+
+Se ela ainda aparece no código, o scan vai registrá-la de novo a cada execução. Hoje não há uma lista de ignorados. Uma saída é marcar o serviço com `locked: true`, que o congela, e corrigir os arquivos à mão.
+
+</details>
+
+<details>
+<summary>Por que alguns nós aparecem tracejados?</summary>
+
+São serviços citados como alvo de uma dependência mas sem arquivo no catálogo. Podem ser um erro de digitação no `target` ou um serviço que ainda não foi cadastrado. O `apimap validate` lista todos eles como aviso.
+
+</details>
+
+<details>
+<summary>Dá para usar sem agentes de IA?</summary>
+
+Dá. O scan é determinístico e não usa IA. As skills são um complemento opcional para o que não está nos arquivos de configuração.
+
+</details>
+
+<details>
+<summary>Aguenta um catálogo grande?</summary>
+
+O catálogo de demonstração tem 50 serviços. A busca e os filtros existem justamente para mapas maiores, mas o desempenho com centenas de serviços ainda não foi medido.
+
+</details>
+
+## Documentação
+
+| | |
+| --- | --- |
+| [CHANGELOG.md](CHANGELOG.md) | O que mudou em cada versão |
+| [RELEASING.md](RELEASING.md) | Como publicar uma versão no npm |
+| [skills/](skills) | Instruções para agentes de IA |
+| [examples/acme-demo](examples/acme-demo) | O catálogo fictício usado nas imagens e na demonstração |
+| [docs/plans](docs/plans) | O desenho do projeto e o plano de implementação de cada etapa |
 
 ## Desenvolvimento
 
 ```bash
+pnpm install
 pnpm test                                # testes unitários (Vitest)
 pnpm -r typecheck
 pnpm --filter @apimap/web dev:demo       # visualizador com hot reload usando o catálogo de demonstração
 pnpm --filter @apimap/web e2e            # testes de ponta a ponta (Playwright)
 ```
 
-O repositório tem quatro pacotes: `@apimap/core` (schema, leitura, validação, grafo e merge), `@apimap/scanners` (descoberta), `apimap` (CLI e servidor do editor) e `@apimap/web` (visualizador e editor).
+O repositório tem quatro pacotes. `@apimap/core` cuida do schema, da leitura, da validação, do grafo e do merge. `@apimap/scanners` faz a descoberta. `apimap` é a CLI e o servidor do editor. `@apimap/web` é o visualizador e o editor. Só o `apimap` vai para o npm, com os outros três embutidos.
 
-## Roadmap
+## Contribuindo
 
-- M1, concluída: catálogo em YAML, validação, site estático e grafo 2D.
-- M2, concluída: `apimap scan` (configuração, OpenAPI, .NET, Node e docker-compose) e skills para agentes de IA.
-- M3, concluída: `apimap serve`, com um editor local para criar, editar e excluir serviços.
-- M4, concluída: modo 3D para apresentações, tema claro e exportação em PNG.
-- M5, concluída: propostas de mudança por pull request a partir do site publicado, repositórios git como fonte, exportação para Mermaid e `apimap diff`.
+Issues e pull requests são bem-vindos. Antes de abrir um pull request, rode `pnpm test` e `pnpm -r typecheck`. O CI roda os mesmos testes, mais os de ponta a ponta com um navegador de verdade.
 
 ## Licença
 
