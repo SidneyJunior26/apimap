@@ -233,3 +233,30 @@ describe('runLink', () => {
     expect(await runLink(dir, 'inventory-api', 'x', {})).toBe(1);
   });
 });
+
+describe('runScan with client applications', () => {
+  const sources = ['client-spa', 'desktop-app'].map((r) => `${REPOS}/${r}`);
+
+  it('keeps calls to servers but not direct database access', async () => {
+    const dir = await catalog({ 'svclens.config.yaml': 'sources: []\n' });
+    await runScan(dir, { source: sources, createStubs: true, json: path.join(dir, 'r.json') });
+    for (const id of ['client-spa', 'desktop-app']) {
+      const svc = await read(dir, `services/${id}.yaml`);
+      expect(svc.role).toBe('client');
+      expect(targets(svc)).toEqual(['gateway-acme-internal:http:scan']);
+    }
+    const files = await readdir(path.join(dir, 'services'));
+    expect(files.filter((f) => /spa-db|desk-db/.test(f))).toEqual([]);
+    const report = JSON.parse(await readFile(path.join(dir, 'r.json'), 'utf8'));
+    const spa = report.services.find((s: any) => s.service === 'client-spa');
+    expect(spa.inconclusive).toContainEqual(expect.objectContaining({ key: 'DATABASE_URL', reason: expect.stringContaining('client application') }));
+    expect(JSON.stringify(report) + (await allText(dir))).not.toMatch(/spaLeak123|deskLeak123/);
+  });
+
+  it('does not give a role to server components, which keep their database relation', async () => {
+    const dir = await catalog({ 'svclens.config.yaml': 'sources: []\n' });
+    await runScan(dir, { source: [`${REPOS}/orders-api`], createStubs: true });
+    expect((await read(dir, 'services/orders-api.yaml')).role).toBeUndefined();
+    expect(targets(await read(dir, 'services/orders-api.yaml')).some((t: string) => t.includes(':sql:'))).toBe(true);
+  });
+});

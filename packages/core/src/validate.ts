@@ -1,4 +1,5 @@
 import type { Catalog, Diagnostic } from './load.js';
+import { DIRECT_ACCESS_PROTOCOLS } from './schema.js';
 
 /** Cross-file checks that a single-file schema cannot express. */
 export function validateCatalog(c: Catalog): Diagnostic[] {
@@ -26,6 +27,9 @@ export function validateCatalog(c: Catalog): Diagnostic[] {
         out.push({ level: 'warning', code: 'duplicate-edge', file: s.file, path: `dependsOn.${i}`, message: `duplicate dependency on "${d.target}" (${d.protocol})` });
       }
       seen.add(key);
+      if (s.role === 'client' && DIRECT_ACCESS_PROTOCOLS.has(d.protocol)) {
+        out.push({ level: 'warning', code: 'client-direct-access', file: s.file, path: `dependsOn.${i}`, message: `client application "${s.id}" depends directly on "${d.target}" (${d.protocol}); data and telemetry usually go through a server layer` });
+      }
       if (!filesById.has(d.target)) {
         out.push({ level: 'warning', code: 'unresolved-target', file: s.file, path: `dependsOn.${i}.target`, message: `"${d.target}" is not a known service; it will be shown as a ghost node` });
       }

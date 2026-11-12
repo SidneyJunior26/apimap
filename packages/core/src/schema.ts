@@ -14,6 +14,12 @@ export const EvidenceSchema = z.object({
   env: z.string().min(1).optional(),
 });
 
+/** `client` apps (browser, desktop, mobile) reach data and telemetry through a server layer; `server` components can reach them directly. */
+export const RoleSchema = z.enum(['client', 'server']);
+
+/** Protocols that mean direct access to a database or an observability backend. */
+export const DIRECT_ACCESS_PROTOCOLS: ReadonlySet<string> = new Set(['sql', 'mongodb', 'redis', 'logs']);
+
 export const DependencySchema = z.object({
   target: z.string().min(1),
   protocol: z.string().min(1).default('http'),
@@ -28,6 +34,7 @@ export const ServiceSchema = z
     id: z.string().regex(SERVICE_ID_PATTERN, 'id must be lowercase letters, digits and dashes, starting with a letter or digit'),
     name: z.string().min(1),
     kind: z.string().min(1),
+    role: RoleSchema.optional(),
     group: z.string().optional(),
     owner: z.string().optional(),
     repo: z.string().optional(),

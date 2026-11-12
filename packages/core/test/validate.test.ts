@@ -39,3 +39,14 @@ describe('validateCatalog', () => {
     expect(validateCatalog(c)).toEqual([]);
   });
 });
+
+describe('client applications', () => {
+  it('warns when a client app depends directly on a database or log backend', () => {
+    const svc = (id: string, role: 'client' | 'server', protocol: string) =>
+      ({ id, name: id, kind: 'web', role, owner: 'o', file: `${id}.yaml`, dependsOn: [{ target: 'db', protocol, confidence: 'confirmed', origin: 'scan', evidence: [] }] }) as any;
+    const kinds = { web: {}, database: {} } as any;
+    const db = { id: 'db', name: 'db', kind: 'database', owner: 'o', file: 'db.yaml', dependsOn: [] } as any;
+    const out = validateCatalog({ services: [svc('spa', 'client', 'sql'), svc('api', 'server', 'sql'), svc('spa2', 'client', 'http'), db], kinds } as any);
+    expect(out.filter((d) => d.code === 'client-direct-access').map((d) => d.file)).toEqual(['spa.yaml']);
+  });
+});

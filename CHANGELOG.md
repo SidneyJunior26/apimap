@@ -1,5 +1,10 @@
 # Changelog
 
+## Não lançado
+
+- Novo campo `role` (`client` ou `server`) nos serviços. O scan marca apps de navegador, desktop e Blazor WebAssembly como `client` e não registra neles relações diretas com banco ou log, que passam por uma camada de servidor. O item vai para o relatório como inconclusivo.
+- `svclens validate` avisa quando um serviço `client` depende direto de banco ou de log (`client-direct-access`).
+
 ## 0.2.0
 
 - O scan lê `Web.config`, `App.config`, transformações (`Web.Release.config`), NLog, log4net e `appsettings*.json`, e não só o que parece uma URL: connection strings, `appSettings`, endpoints de cliente WCF, servidor SMTP e destinos de log e telemetria (Serilog, NLog, log4net, Application Insights). JSON com comentários e vírgula sobrando é aceito.

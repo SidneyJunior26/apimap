@@ -36,6 +36,9 @@ export const dotnetScanner: Scanner = {
       }
       const packages = [...xml.matchAll(/<PackageReference\s+Include="([^"]+)"/g)].map((m) => m[1]!);
       for (const pkg of packages) for (const [re, tech] of PACKAGES) if (re.test(pkg)) acc.hints.tech.push(tech);
+      if (!acc.hints.role && (/BlazorWebAssembly/i.test(sdk) || /<Use(WPF|WindowsForms|Maui)>\s*true/i.test(xml) || /<OutputType>\s*WinExe\s*</i.test(xml))) {
+        acc.hints.role = 'client';
+      }
       if (!acc.hints.kind) {
         if (sdk.includes('Worker')) acc.hints.kind = 'worker';
         else if (packages.includes('Grpc.AspNetCore')) acc.hints.kind = 'grpc';

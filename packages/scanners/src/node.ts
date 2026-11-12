@@ -7,6 +7,8 @@ const TECH: Record<string, string> = {
   '@grpc/grpc-js': 'grpc', amqplib: 'rabbitmq', kafkajs: 'kafka',
 };
 const FRONTEND = new Set(['react', 'nextjs', 'vue', 'nuxt', 'angular', 'svelte']);
+/** Frameworks that run on a server (Next and Nuxt render on the server too). */
+const SERVER_SIDE = new Set(['nextjs', 'nuxt', 'express', 'fastify', 'nestjs', 'koa', 'hono', 'socket.io', 'ws', 'apollo', 'grpc', 'rabbitmq', 'kafka']);
 
 /** Reads the root package.json: name, description, tech stack and a suggested kind. */
 export const nodeScanner: Scanner = {
@@ -34,5 +36,7 @@ export const nodeScanner: Scanner = {
       else if (tech.includes('socket.io')) acc.hints.kind = 'websocket';
       else if (tech.some((t) => FRONTEND.has(t))) acc.hints.kind = 'web';
     }
+    // A browser app with no server framework only talks to servers; it never opens a database or log connection.
+    if (!acc.hints.role && tech.some((t) => FRONTEND.has(t)) && !tech.some((t) => SERVER_SIDE.has(t))) acc.hints.role = 'client';
   },
 };

@@ -1,0 +1,1 @@
+{ "name": "acme-portal-spa", "dependencies": { "react": "18.2.0" }, "devDependencies": { "vite": "5.0.0" } }
