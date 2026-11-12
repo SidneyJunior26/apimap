@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- Corrige o caminho do comando `svclens` no `package.json`, que o npm precisava corrigir a cada publicação.
+- Passa a publicar por tag no GitHub Actions: o workflow envia a versão para a fila do npm (`npm stage publish`) e a publicação final depende da aprovação com a passkey.
+
 ## 0.1.0
 
 Primeira versão publicada.

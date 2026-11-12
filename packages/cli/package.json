@@ -1,6 +1,6 @@
 {
   "name": "svclens",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Interactive map of a company's APIs and how they call each other, built from YAML files in Git",
   "keywords": [
     "api",
@@ -25,7 +25,7 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "svclens": "./dist/bin.js"
+    "svclens": "dist/bin.js"
   },
   "exports": {
     ".": {
