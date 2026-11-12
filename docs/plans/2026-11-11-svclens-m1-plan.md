@@ -1,12 +1,12 @@
-# apimap M1 Implementation Plan
+# svclens M1 Implementation Plan
 
-**Goal:** Ship read-only apimap: YAML catalog → validated graph → static 2D "nebula" web viewer, with a fictional demo catalog.
+**Goal:** Ship read-only svclens: YAML catalog → validated graph → static 2D "nebula" web viewer, with a fictional demo catalog.
 
-**Architecture:** pnpm monorepo. `@apimap/core` loads/validates YAML catalog and emits `GraphJson`. `@apimap/cli` exposes `validate` and `build`; `build` writes `graph.json` next to prebuilt web assets. `@apimap/web` (Vite + React + Sigma.js) fetches `graph.json` and renders.
+**Architecture:** pnpm monorepo. `@svclens/core` loads/validates YAML catalog and emits `GraphJson`. `@svclens/cli` exposes `validate` and `build`; `build` writes `graph.json` next to prebuilt web assets. `@svclens/web` (Vite + React + Sigma.js) fetches `graph.json` and renders.
 
 **Tech Stack:** Node 20+, TypeScript 5 (strict, ESM), pnpm 9 workspaces, Zod 3, `yaml` 2, graphology + graphology-layout-forceatlas2, Sigma.js 3, React 18, Vite 5, Vitest, Playwright, commander, tsup.
 
-**Spec:** `docs/plans/2026-11-11-apimap-design.md` (sections: Modelo de dados, Erros, Web (visual), Roadmap M1).
+**Spec:** `docs/plans/2026-11-11-svclens-design.md` (sections: Modelo de dados, Erros, Web (visual), Roadmap M1).
 
 ## Global Constraints
 
@@ -45,7 +45,7 @@ packages/web/src/panel/{Sidebar.tsx, Search.tsx, Filters.tsx, NodeDetail.tsx, Le
 packages/web/src/background/Nebula.tsx
 packages/web/test/{filters.test.ts, traversal.test.ts}
 packages/web/e2e/smoke.spec.ts
-examples/acme-demo/{apimap.config.yaml, services/*.yaml}
+examples/acme-demo/{svclens.config.yaml, services/*.yaml}
 ```
 
 ---
@@ -58,7 +58,7 @@ examples/acme-demo/{apimap.config.yaml, services/*.yaml}
 - Test: `packages/core/test/schema.test.ts`
 
 **Interfaces:**
-- Produces (`@apimap/core`):
+- Produces (`@svclens/core`):
   - `KindDef = { label: string; color: string; icon?: string; shape?: 'circle'|'square'|'diamond'|'hexagon' }`
   - `DEFAULT_KINDS: Record<string, KindDef>` (14 kinds from Global Constraints, distinct hex colors tuned for dark bg)
   - `EvidenceSchema` `{ file: string; line?: number }`
@@ -100,7 +100,7 @@ examples/acme-demo/{apimap.config.yaml, services/*.yaml}
   - `empty dir loads 0 services, no errors` (Review Focus 1).
   - schema failure → code `schema`, `path` like `dependsOn.0.confidence`.
 - [ ] **Step 2: Run** → FAIL.
-- [ ] **Step 3: Implement** — read `apimap.config.yaml` (optional), glob `services/**/*.{yaml,yml}` (fast-glob), parse with `yaml` `parse`, `safeParse` each; merged kind missing `color` falls back to `#94a3b8`, missing `label` to id.
+- [ ] **Step 3: Implement** — read `svclens.config.yaml` (optional), glob `services/**/*.{yaml,yml}` (fast-glob), parse with `yaml` `parse`, `safeParse` each; merged kind missing `color` falls back to `#94a3b8`, missing `label` to id.
 - [ ] **Step 4: Run** → PASS. **Commit** `feat(core): load catalog with per-file diagnostics`.
 
 ### Task 3: Validation + graph build
@@ -132,12 +132,12 @@ examples/acme-demo/{apimap.config.yaml, services/*.yaml}
   - cycle `a→b→a` and `a→a` produce 3 edges, no throw.
   - `generatedAt` equals injected `now.toISOString()`; output deterministic (nodes/edges sorted by id).
 - [ ] **Step 3: Run** → FAIL. **Step 4: Implement.** **Step 5: Run** → PASS.
-- [ ] **Step 6: Export JSON Schema** of `ServiceSchema` to `packages/core/schema/service.schema.json` via `zod-to-json-schema` script `pnpm --filter @apimap/core gen:schema` (editor autocompletion with `# yaml-language-server: $schema=`). **Commit** `feat(core): validate catalog and build graph json`.
+- [ ] **Step 6: Export JSON Schema** of `ServiceSchema` to `packages/core/schema/service.schema.json` via `zod-to-json-schema` script `pnpm --filter @svclens/core gen:schema` (editor autocompletion with `# yaml-language-server: $schema=`). **Commit** `feat(core): validate catalog and build graph json`.
 
 ### Task 4: CLI `validate` and `build`
 
 **Files:**
-- Create: `packages/cli/package.json` (bin `apimap`), `packages/cli/src/index.ts`, `commands/validate.ts`, `commands/build.ts`, `report.ts`
+- Create: `packages/cli/package.json` (bin `svclens`), `packages/cli/src/index.ts`, `commands/validate.ts`, `commands/build.ts`, `report.ts`
 - Test: `packages/cli/test/cli.test.ts`
 
 **Interfaces:**
@@ -146,7 +146,7 @@ examples/acme-demo/{apimap.config.yaml, services/*.yaml}
   - `runValidate(dir: string, opts: { strict?: boolean }): Promise<number>` — exit code.
   - `runBuild(dir: string, opts: { out: string /* default `${dir}/dist` */; webDist?: string }): Promise<number>`
   - `formatDiagnostics(d: Diagnostic[]): string` — `ERROR services/a.yaml dependsOn.0: message`, summary line `N errors, M warnings`.
-- Web assets resolved from `@apimap/web/dist` via `import.meta.resolve`; `webDist` override for tests.
+- Web assets resolved from `@svclens/web/dist` via `import.meta.resolve`; `webDist` override for tests.
 
 - [ ] **Step 1: Failing tests:**
   - `validate ok fixture exits 0`; with warning + `--strict` exits 1; with error exits 1.
@@ -159,10 +159,10 @@ examples/acme-demo/{apimap.config.yaml, services/*.yaml}
 ### Task 5: acme-demo catalog
 
 **Files:**
-- Create: `examples/acme-demo/apimap.config.yaml`, `examples/acme-demo/services/*.yaml` (~40)
+- Create: `examples/acme-demo/svclens.config.yaml`, `examples/acme-demo/services/*.yaml` (~40)
 
 - [ ] **Step 1: Write catalog** — fictional e-commerce/insurance "Acme": groups `identity, commerce, payments, logistics, platform, partners`; every default kind used ≥1; plus custom kind `delphi` in config; mix of `confirmed`/`inferred`/`manual`; ≥1 ghost target, ≥1 cycle; names with accents (e.g. `Autorização Core`); external partners invented (`Paygate`, `ShipFast`, `MapRoute`). Each file starts with `# yaml-language-server: $schema=../../../packages/core/schema/service.schema.json`.
-- [ ] **Step 2: Verify** `pnpm apimap validate examples/acme-demo` → `0 errors` (warnings allowed only for intentional ghost).
+- [ ] **Step 2: Verify** `pnpm svclens validate examples/acme-demo` → `0 errors` (warnings allowed only for intentional ghost).
 - [ ] **Step 3: Commit** `feat(examples): add fictional acme demo catalog`.
 
 ### Task 6: Web shell — data, filters, sidebar
@@ -172,14 +172,14 @@ examples/acme-demo/{apimap.config.yaml, services/*.yaml}
 - Test: `packages/web/test/filters.test.ts`
 
 **Interfaces:**
-- Consumes: `GraphJson` type from `@apimap/core` (type-only import).
+- Consumes: `GraphJson` type from `@svclens/core` (type-only import).
 - Produces:
   - `loadGraph(url = './graph.json'): Promise<GraphJson>`
   - `FilterState = { query: string; kinds: Set<string>; groups: Set<string>; confidences: Set<Confidence> }`
   - `normalize(s: string): string` — lowercase + NFD strip diacritics.
   - `applyFilters(g: GraphJson, f: FilterState): { nodeIds: Set<string>; edgeIds: Set<string> }` — edge visible only if both ends visible and confidence selected.
   - `countByKind(g: GraphJson): Record<string, number>`
-- Dev: Vite dev server serves `examples/acme-demo` graph via `apimap build` output in `public/graph.json` (script `pnpm --filter @apimap/web dev:demo`).
+- Dev: Vite dev server serves `examples/acme-demo` graph via `svclens build` output in `public/graph.json` (script `pnpm --filter @svclens/web dev:demo`).
 
 - [ ] **Step 1: Failing tests:**
   - `search is accent and case insensitive` — query `autorizacao` matches label `Autorização Core` (Review Focus 4); also matches by `id`, `owner`, `tags`, `hosts`.
@@ -218,7 +218,7 @@ examples/acme-demo/{apimap.config.yaml, services/*.yaml}
   - Labels: shown for hovered/selected/neighbors and nodes above degree threshold; label color `--text`.
   - `Nebula.tsx`: fixed layer behind canvas — 3 large blurred radial gradients (violet/teal/blue) drifting via CSS keyframes 40s, dot grid (`radial-gradient` 1px at 24px), SVG noise overlay opacity .04.
   - Floating toolbar bottom-left: zoom +/−, fit, reset filters.
-- [ ] **Step 5: Manual verify** `pnpm --filter @apimap/web dev:demo` — clusters visible, particles flow in call direction, hover fades, click focuses, upstream/downstream works, reduced-motion (DevTools emulation) stops animation.
+- [ ] **Step 5: Manual verify** `pnpm --filter @svclens/web dev:demo` — clusters visible, particles flow in call direction, hover fades, click focuses, upstream/downstream works, reduced-motion (DevTools emulation) stops animation.
 - [ ] **Step 6: Commit** `feat(web): add 2D nebula graph renderer`.
 
 ### Task 8: E2E smoke, CI, README
@@ -226,12 +226,12 @@ examples/acme-demo/{apimap.config.yaml, services/*.yaml}
 **Files:**
 - Create: `packages/web/e2e/smoke.spec.ts`, `packages/web/playwright.config.ts`, `.github/workflows/ci.yml`, `README.md`
 
-- [ ] **Step 1: Write Playwright test** against `apimap build examples/acme-demo` output served by `vite preview`:
+- [ ] **Step 1: Write Playwright test** against `svclens build examples/acme-demo` output served by `vite preview`:
   - page loads, canvas visible, no console errors.
   - type `autorizacao` in search → result list contains `Autorização Core`; click → detail panel shows its owner.
   - uncheck kind `external` → searching `Paygate` shows "No matches".
   - empty catalog build (fixture) shows text `No services yet`.
-- [ ] **Step 2: Run** `pnpm --filter @apimap/web e2e` → PASS.
-- [ ] **Step 3: CI** — on push/PR: pnpm install, `typecheck`, `test`, build all, `apimap validate examples/acme-demo --strict` is NOT used (demo has intentional ghost warning; use plain), `e2e`; on `main` deploy `examples/acme-demo/dist` to GitHub Pages.
-- [ ] **Step 4: README** — pitch, screenshot placeholder, quickstart (`npx apimap build ./my-catalog`), YAML example from spec, kinds table, roadmap M2–M5.
+- [ ] **Step 2: Run** `pnpm --filter @svclens/web e2e` → PASS.
+- [ ] **Step 3: CI** — on push/PR: pnpm install, `typecheck`, `test`, build all, `svclens validate examples/acme-demo --strict` is NOT used (demo has intentional ghost warning; use plain), `e2e`; on `main` deploy `examples/acme-demo/dist` to GitHub Pages.
+- [ ] **Step 4: README** — pitch, screenshot placeholder, quickstart (`npx svclens build ./my-catalog`), YAML example from spec, kinds table, roadmap M2–M5.
 - [ ] **Step 5: Commit** `chore: add e2e smoke, CI and README`.

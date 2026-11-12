@@ -57,7 +57,7 @@ export function formatDiff(d: GraphDiff, format: 'text' | 'markdown'): string {
   ];
   const n = (x: number, sign: string) => (md ? `**${sign}${x}**` : `${sign}${x}`);
   const summary = `${n(d.addedServices.length, '+')} services, ${n(d.removedServices.length, '-')} services, ${n(d.changedServices.length, '~')} changed · ${n(d.addedEdges.length, '+')} links, ${n(d.removedEdges.length, '-')} links, ${n(d.changedEdges.length, '~')} changed`;
-  const out = md ? ['### apimap', '', summary] : [summary];
+  const out = md ? ['### svclens', '', summary] : [summary];
   for (const [title, items] of sections) {
     if (!items.length) continue;
     out.push('', md ? `#### ${title}` : `${title}:`, ...items.map((i) => (md ? `- ${i}` : `  ${i}`)));

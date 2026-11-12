@@ -45,13 +45,13 @@ importers:
         specifier: ^3.24.1
         version: 3.25.76
     devDependencies:
-      '@apimap/core':
+      '@svclens/core':
         specifier: workspace:*
         version: link:../core
-      '@apimap/scanners':
+      '@svclens/scanners':
         specifier: workspace:*
         version: link:../scanners
-      '@apimap/web':
+      '@svclens/web':
         specifier: workspace:*
         version: link:../web
       tsup:
@@ -79,7 +79,7 @@ importers:
 
   packages/scanners:
     dependencies:
-      '@apimap/core':
+      '@svclens/core':
         specifier: workspace:^
         version: link:../core
       fast-glob:
@@ -119,12 +119,12 @@ importers:
         specifier: 0.186.1
         version: 0.186.1
     devDependencies:
-      '@apimap/core':
-        specifier: workspace:^
-        version: link:../core
       '@playwright/test':
         specifier: ^1.49.1
         version: 1.65.0
+      '@svclens/core':
+        specifier: workspace:^
+        version: link:../core
       '@types/react':
         specifier: ^18.3.12
         version: 18.3.31

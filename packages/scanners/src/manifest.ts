@@ -1,11 +1,11 @@
-import { ServiceSchema } from '@apimap/core';
+import { ServiceSchema } from '@svclens/core';
 import { parse } from 'yaml';
 import type { Scanner } from './types.js';
 
-export const MANIFEST_FILES = ['apimap.yaml', 'apimap.yml'];
+export const MANIFEST_FILES = ['svclens.yaml', 'svclens.yml'];
 const DeclaredSchema = ServiceSchema.partial();
 
-/** `apimap.yaml` at the repo root: the owner's own description of the service. Its fields win over scanned hints. */
+/** `svclens.yaml` at the repo root: the owner's own description of the service. Its fields win over scanned hints. */
 export const manifestScanner: Scanner = {
   name: 'manifest',
   async scan(repo, acc) {

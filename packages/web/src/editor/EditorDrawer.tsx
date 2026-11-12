@@ -1,4 +1,4 @@
-import type { GraphJson, Service } from '@apimap/core';
+import type { GraphJson, Service } from '@svclens/core';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ApiError } from '../api';
 import { DepsTable } from './DepsTable';

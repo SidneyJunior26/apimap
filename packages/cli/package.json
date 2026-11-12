@@ -1,5 +1,5 @@
 {
-  "name": "apimap",
+  "name": "svclens",
   "version": "0.1.0",
   "description": "Interactive map of a company's APIs and how they call each other, built from YAML files in Git",
   "keywords": [
@@ -13,19 +13,19 @@
     "mermaid",
     "developer-tools"
   ],
-  "homepage": "https://sidneyjunior26.github.io/apimap/",
+  "homepage": "https://sidneyjunior26.github.io/svclens/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SidneyJunior26/apimap.git"
+    "url": "git+https://github.com/SidneyJunior26/svclens.git"
   },
   "bugs": {
-    "url": "https://github.com/SidneyJunior26/apimap/issues"
+    "url": "https://github.com/SidneyJunior26/svclens/issues"
   },
   "author": "Sidney Junior",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "apimap": "./dist/bin.js"
+    "svclens": "./dist/bin.js"
   },
   "exports": {
     ".": {
@@ -58,9 +58,9 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@apimap/core": "workspace:*",
-    "@apimap/scanners": "workspace:*",
-    "@apimap/web": "workspace:*",
+    "@svclens/core": "workspace:*",
+    "@svclens/scanners": "workspace:*",
+    "@svclens/web": "workspace:*",
     "tsup": "^8.3.5"
   },
   "publishConfig": {

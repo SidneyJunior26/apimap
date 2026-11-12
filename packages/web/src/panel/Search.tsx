@@ -1,4 +1,4 @@
-import type { GraphJson } from '@apimap/core';
+import type { GraphJson } from '@svclens/core';
 import { searchMatches, type FilterState, type Visible } from '../filters';
 
 interface Props {

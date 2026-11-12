@@ -1,15 +1,15 @@
 ---
-name: apimap-add
-description: Cadastra um serviço novo (API, BFF, worker, banco de dados, fila, sistema legado ou fornecedor externo) em um catálogo apimap, fazendo poucas perguntas e gravando um services/<id>.yaml válido. Use quando o usuário quiser registrar ou descrever um serviço manualmente.
+name: svclens-add
+description: Cadastra um serviço novo (API, BFF, worker, banco de dados, fila, sistema legado ou fornecedor externo) em um catálogo svclens, fazendo poucas perguntas e gravando um services/<id>.yaml válido. Use quando o usuário quiser registrar ou descrever um serviço manualmente.
 ---
 
-# apimap-add
+# svclens-add
 
-Objetivo: criar um arquivo de serviço válido em um catálogo apimap.
+Objetivo: criar um arquivo de serviço válido em um catálogo svclens.
 
 ## Passos
 
-1. Encontre o diretório do catálogo (contém `services/` e normalmente `apimap.config.yaml`). Leia o `apimap.config.yaml` para conhecer `kinds` e `groups` customizados.
+1. Encontre o diretório do catálogo (contém `services/` e normalmente `svclens.config.yaml`). Leia o `svclens.config.yaml` para conhecer `kinds` e `groups` customizados.
 2. Pergunte só o que não dá para deduzir, uma pergunta curta por vez:
    - **nome** (legível) e **id** (letras minúsculas, números e hífens; sugira um a partir do nome)
    - **tipo (kind)**: `bff`, `core`, `web`, `worker`, `webservice`, `websocket`, `grpc`, `graphql`, `queue`, `database`, `ftp`, `logs`, `external`, `legacy` ou um tipo customizado da configuração
@@ -19,7 +19,7 @@ Objetivo: criar um arquivo de serviço válido em um catálogo apimap.
 3. Confira que `services/<id>.yaml` não existe e que nenhum outro arquivo usa o mesmo `id`.
 4. Grave o arquivo:
    ```yaml
-   # yaml-language-server: $schema=https://raw.githubusercontent.com/SidneyJunior26/apimap/main/packages/core/schema/service.schema.json
+   # yaml-language-server: $schema=https://raw.githubusercontent.com/SidneyJunior26/svclens/main/packages/core/schema/service.schema.json
    id: payments-api
    name: Payments API
    kind: core
@@ -33,7 +33,7 @@ Objetivo: criar um arquivo de serviço válido em um catálogo apimap.
        origin: manual
    ```
    Dependências informadas pelo usuário são `confidence: manual` e `origin: manual`.
-5. Rode `npx apimap validate <catalogo>` e corrija qualquer erro. Um aviso de alvo não resolvido significa que aquele serviço ainda não está no catálogo: ofereça cadastrá-lo também.
+5. Rode `npx svclens validate <catalogo>` e corrija qualquer erro. Um aviso de alvo não resolvido significa que aquele serviço ainda não está no catálogo: ofereça cadastrá-lo também.
 
 ## Regras
 

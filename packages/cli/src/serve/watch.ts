@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { watch } from 'chokidar';
-import { CONFIG_FILE } from '@apimap/core';
+import { CONFIG_FILE } from '@svclens/core';
 
 /**
  * Calls `onChange` (debounced) when the config or any service file changes.

@@ -1,4 +1,4 @@
-import type { GraphJson } from '@apimap/core';
+import type { GraphJson } from '@svclens/core';
 import type Sigma from 'sigma';
 import { hash01, type ApiGraph, type EdgeAttrs, type NodeAttrs } from './layout';
 

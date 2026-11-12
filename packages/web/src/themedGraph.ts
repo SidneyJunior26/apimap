@@ -1,4 +1,4 @@
-import type { GraphJson } from '@apimap/core';
+import type { GraphJson } from '@svclens/core';
 import { themeColor } from './theme';
 import type { Theme } from './viewState';
 

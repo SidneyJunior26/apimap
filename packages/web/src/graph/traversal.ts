@@ -1,4 +1,4 @@
-import type { GraphJson } from '@apimap/core';
+import type { GraphJson } from '@svclens/core';
 
 export type Direction = 'up' | 'down' | 'both';
 

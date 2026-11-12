@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ServiceSchema } from '@apimap/core';
+import { ServiceSchema } from '@svclens/core';
 import { emptyForm, formToService, serviceToForm } from '../src/editor/form.js';
 
 const svc = ServiceSchema.parse({

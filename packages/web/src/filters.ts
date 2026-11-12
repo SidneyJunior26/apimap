@@ -1,4 +1,4 @@
-import type { Confidence, GraphJson, GraphNode } from '@apimap/core';
+import type { Confidence, GraphJson, GraphNode } from '@svclens/core';
 
 export const UNGROUPED = 'ungrouped';
 export const CONFIDENCES: Confidence[] = ['confirmed', 'inferred', 'manual'];

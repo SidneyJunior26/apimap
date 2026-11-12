@@ -1,10 +1,10 @@
-# apimap M3: plano de implementação
+# svclens M3: plano de implementação
 
-Objetivo: `apimap serve` abre o visualizador localmente com um editor para criar, editar e excluir serviços. As mudanças vão direto para os YAML do catálogo, preservando comentários, e o grafo atualiza sozinho quando um arquivo muda no disco.
+Objetivo: `svclens serve` abre o visualizador localmente com um editor para criar, editar e excluir serviços. As mudanças vão direto para os YAML do catálogo, preservando comentários, e o grafo atualiza sozinho quando um arquivo muda no disco.
 
 Arquitetura: a CLI ganha um servidor HTTP (Hono sobre `@hono/node-server`) que serve o visualizador já compilado, expõe uma API JSON sobre o catálogo e avisa o navegador por Server-Sent Events. O visualizador descobre se está em modo de edição consultando a API; sem API, continua somente leitura como no site estático.
 
-Spec: `docs/plans/2026-11-11-apimap-design.md`, seção Web (item Editor) e Roadmap M3.
+Spec: `docs/plans/2026-11-11-svclens-design.md`, seção Web (item Editor) e Roadmap M3.
 
 ## Restrições
 
@@ -19,7 +19,7 @@ Spec: `docs/plans/2026-11-11-apimap-design.md`, seção Web (item Editor) e Road
 1. Requisição vinda de outro site (Origin diferente) tentando excluir um serviço: recusada.
 2. Edição de um serviço com comentários no YAML: comentários continuam no arquivo.
 3. Exclusão de um serviço do qual outros dependem: a interface avisa quantos dependem antes de confirmar, e depois disso eles aparecem ligados a um nó fantasma.
-4. Arquivo alterado por fora (editor de texto, `apimap scan`): o navegador atualiza sem recarregar a página e sem embaralhar o layout dos nós que já existiam.
+4. Arquivo alterado por fora (editor de texto, `svclens scan`): o navegador atualiza sem recarregar a página e sem embaralhar o layout dos nós que já existiam.
 5. Dois serviços com o mesmo id: criação recusada com 409.
 
 ---
@@ -41,9 +41,9 @@ Arquivos: `packages/cli/src/serve/app.ts`, `packages/cli/test/serve.test.ts`.
 
 Arquivos: `packages/cli/src/serve/watch.ts`, `packages/cli/src/commands/serve.ts`, `packages/cli/src/bin.ts`.
 
-- `watchCatalog(root: string, onChange: () => void): () => void` com chokidar sobre `apimap.config.yaml` e `services/`, debounce de 150 ms.
+- `watchCatalog(root: string, onChange: () => void): () => void` com chokidar sobre `svclens.config.yaml` e `services/`, debounce de 150 ms.
 - `GET /api/events` (SSE) envia `event: graph` a cada mudança e um comentário a cada 25 s para manter a conexão.
-- `apimap serve [dir] [--port 4321] [--open]` imprime a URL; `--open` abre o navegador.
+- `svclens serve [dir] [--port 4321] [--open]` imprime a URL; `--open` abre o navegador.
 - Teste do watcher: gravar um arquivo dispara o callback uma vez.
 
 ### Tarefa 3: Visualizador em modo de edição
@@ -60,5 +60,5 @@ Arquivos: `packages/web/src/data.ts`, `packages/web/src/api.ts`, `packages/web/s
 
 ### Tarefa 4: Testes de ponta a ponta, documentação
 
-- Playwright: copia o catálogo de demonstração para uma pasta temporária, sobe `apimap serve`, cria um serviço pela interface, edita, exclui e confere os YAML no disco; edita um arquivo por fora e confere que o grafo atualizou.
+- Playwright: copia o catálogo de demonstração para uma pasta temporária, sobe `svclens serve`, cria um serviço pela interface, edita, exclui e confere os YAML no disco; edita um arquivo por fora e confere que o grafo atualizou.
 - README: comando `serve` na tabela da CLI e seção curta sobre o editor; roadmap marca a M3 como concluída.

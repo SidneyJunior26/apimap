@@ -14,7 +14,7 @@ export function validateCatalog(c: Catalog): Diagnostic[] {
 
   for (const s of c.services) {
     if (!c.kinds[s.kind]) {
-      out.push({ level: 'error', code: 'unknown-kind', file: s.file, path: 'kind', message: `unknown kind "${s.kind}" (declare it under kinds: in apimap.config.yaml)` });
+      out.push({ level: 'error', code: 'unknown-kind', file: s.file, path: 'kind', message: `unknown kind "${s.kind}" (declare it under kinds: in svclens.config.yaml)` });
     }
     if (!s.owner) {
       out.push({ level: 'warning', code: 'missing-owner', file: s.file, path: 'owner', message: `service "${s.id}" has no owner` });

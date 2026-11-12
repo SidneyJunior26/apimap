@@ -2,7 +2,7 @@
 import { Document } from 'yaml';
 import type { Dependency, Service } from './schema.js';
 
-export const SERVICE_SCHEMA_URL = 'https://raw.githubusercontent.com/SidneyJunior26/apimap/main/packages/core/schema/service.schema.json';
+export const SERVICE_SCHEMA_URL = 'https://raw.githubusercontent.com/SidneyJunior26/svclens/main/packages/core/schema/service.schema.json';
 
 export const KEY_ORDER = ['id', 'name', 'kind', 'group', 'owner', 'repo', 'description', 'tech', 'hosts', 'tags', 'locked', 'dependsOn'];
 

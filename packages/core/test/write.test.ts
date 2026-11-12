@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
 import { ServiceSchema, writeServiceFile } from '../src/index.js';
 
-const tmp = () => mkdtemp(path.join(os.tmpdir(), 'apimap-write-'));
+const tmp = () => mkdtemp(path.join(os.tmpdir(), 'svclens-write-'));
 
 describe('writeServiceFile', () => {
   it('creates a new file with schema header', async () => {

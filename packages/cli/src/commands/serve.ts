@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { serve } from '@hono/node-server';
-import { loadCatalog } from '@apimap/core';
+import { loadCatalog } from '@svclens/core';
 import { createServeApp } from '../serve/app.js';
 import { watchCatalog } from '../serve/watch.js';
 import { resolveWebDist } from './build.js';
@@ -28,7 +28,7 @@ export async function runServe(dir: string, opts: ServeCommandOptions): Promise<
 
   const server = serve({ fetch: app.fetch, hostname: '127.0.0.1', port });
   const url = `http://localhost:${port}`;
-  console.log(`apimap editor for "${catalog.config.name}" (${catalog.services.length} services) at ${url}`);
+  console.log(`svclens editor for "${catalog.config.name}" (${catalog.services.length} services) at ${url}`);
   console.log('changes are written to the YAML files in services/; press Ctrl+C to stop');
   if (opts.open) openBrowser(url);
 

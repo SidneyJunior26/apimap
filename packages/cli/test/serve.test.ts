@@ -9,7 +9,7 @@ const PORT = 4321;
 const ORIGIN = `http://localhost:${PORT}`;
 
 async function catalog(files: Record<string, string>): Promise<string> {
-  const dir = await mkdtemp(path.join(os.tmpdir(), 'apimap-serve-'));
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'svclens-serve-'));
   for (const [rel, text] of Object.entries(files)) {
     await mkdir(path.dirname(path.join(dir, rel)), { recursive: true });
     await writeFile(path.join(dir, rel), text);
@@ -36,7 +36,7 @@ beforeEach(async () => {
     'services/payments.yaml': 'id: payments-api\nname: Payments\nkind: core\nowner: t\n',
     'services/legacy.yaml': 'id: legacy\nname: Legacy\nkind: legacy\nowner: t\nlocked: true\n',
   });
-  webDist = await catalog({ 'index.html': '<!doctype html><html><head><title>apimap</title></head></html>' });
+  webDist = await catalog({ 'index.html': '<!doctype html><html><head><title>svclens</title></head></html>' });
   app = createServeApp(root, { webDist, port: PORT }).app;
 });
 
@@ -117,7 +117,7 @@ describe('serve API', () => {
     const res = await req('GET', '/');
     expect(res.status).toBe(200);
     const html = await res.text();
-    expect(html).toContain('<title>apimap</title>');
-    expect(html).toContain('<meta name="apimap-editable" content="true">');
+    expect(html).toContain('<title>svclens</title>');
+    expect(html).toContain('<meta name="svclens-editable" content="true">');
   });
 });

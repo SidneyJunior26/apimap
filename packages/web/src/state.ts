@@ -8,7 +8,7 @@ export interface Selection {
 
 export const initialSelection: Selection = { selectedId: null, focusMode: 'none', depth: 2 };
 
-/** "local": `apimap serve` writes files. "propose": published site opens GitHub. null: read-only. */
+/** "local": `svclens serve` writes files. "propose": published site opens GitHub. null: read-only. */
 export type EditMode = 'local' | 'propose' | null;
 
 export const EDIT_LABELS = {

@@ -1,5 +1,5 @@
 {
-  "name": "@apimap/scanners",
+  "name": "@svclens/scanners",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -20,7 +20,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@apimap/core": "workspace:^",
+    "@svclens/core": "workspace:^",
     "fast-glob": "^3.3.2",
     "yaml": "^2.6.1"
   }

@@ -1,4 +1,4 @@
-import type { Confidence, GraphJson } from '@apimap/core';
+import type { Confidence, GraphJson } from '@svclens/core';
 import { CONFIDENCES, countByKind, groupOf, UNGROUPED, type FilterState } from '../filters';
 
 interface Props {

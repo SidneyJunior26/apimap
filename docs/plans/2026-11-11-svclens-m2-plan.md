@@ -1,10 +1,10 @@
-# apimap M2 — Plano de implementação
+# svclens M2 — Plano de implementação
 
-**Objetivo:** descoberta automática. `apimap scan` lê repositórios, encontra URLs/hosts em configs, casa com serviços do catálogo e grava arestas `confirmed` nos YAML sem destruir edições manuais. Skills para agentes de IA completam com arestas `inferred`.
+**Objetivo:** descoberta automática. `svclens scan` lê repositórios, encontra URLs/hosts em configs, casa com serviços do catálogo e grava arestas `confirmed` nos YAML sem destruir edições manuais. Skills para agentes de IA completam com arestas `inferred`.
 
-**Arquitetura:** novo pacote `@apimap/scanners` (scanners puros: arquivos → achados). `@apimap/core` ganha resolução host→serviço, merge e escrita YAML preservando comentários. CLI ganha `scan` e `link`.
+**Arquitetura:** novo pacote `@svclens/scanners` (scanners puros: arquivos → achados). `@svclens/core` ganha resolução host→serviço, merge e escrita YAML preservando comentários. CLI ganha `scan` e `link`.
 
-**Spec:** `docs/plans/2026-11-11-apimap-design.md` (seções Modelo de dados, Regras de merge, Descoberta, Roadmap M2).
+**Spec:** `docs/plans/2026-11-11-svclens-design.md` (seções Modelo de dados, Regras de merge, Descoberta, Roadmap M2).
 
 ## Restrições globais
 
@@ -69,28 +69,28 @@
 - `dotnet`: `*.csproj` → tech `dotnetN`/`dotnet-framework`, pacotes (`Grpc.*`→`grpc`, `Refit`, `MassTransit`/`RabbitMQ.Client`→`rabbitmq`, `Confluent.Kafka`→`kafka`); connection strings (`Server=`/`Data Source=`/`Host=`) em `appsettings*.json`/`Web.config` → referência `sql`; `Connected Services/**` e `*.svcmap`/`*.wsdl` com endpoint → `soap`; projeto com `*.svc` → kind `webservice`; `Worker` SDK → kind `worker`.
 - `openapi`: `openapi*.{yaml,yml,json}`, `swagger*.json` → `name` (info.title), `description`, `hosts` a partir de `servers[].url` (dicas do próprio serviço, não referências).
 - `compose`: `docker-compose*.yml`/`compose*.yml` → `depends_on` vira referência `http` para o nome do serviço compose; imagens conhecidas (`postgres`, `mysql`, `mssql`, `mongo`, `redis` → `sql`/`redis`; `rabbitmq` → `amqp`; `kafka` → `kafka`).
-- `manifest`: `apimap.yaml` na raiz do repo → `declared` (serviço parcial validado com `ServiceSchema.partial()`); campos declarados prevalecem; deps declaradas entram como `origin: scan` com a `confidence` declarada (padrão `manual`).
+- `manifest`: `svclens.yaml` na raiz do repo → `declared` (serviço parcial validado com `ServiceSchema.partial()`); campos declarados prevalecem; deps declaradas entram como `origin: scan` com a `confidence` declarada (padrão `manual`).
 - Inferência de kind por nome do repo quando nenhum scanner sugeriu: contém `bff` → `bff`, `worker` → `worker`, `web`/`portal`/`app` → `web`.
 - Referência para o próprio serviço é descartada (Foco 5).
 
-**Testes:** fixtures `orders-api` (.NET + connection string + Connected Service SOAP), `catalog-api` (OpenAPI), `platform` (compose), `billing-ws` (`.svc`), `partner-gateway` (com `apimap.yaml`).
+**Testes:** fixtures `orders-api` (.NET + connection string + Connected Service SOAP), `catalog-api` (OpenAPI), `platform` (compose), `billing-ws` (`.svc`), `partner-gateway` (com `svclens.yaml`).
 
 ### Tarefa 5: CLI `scan` e `link`
 
 **Arquivos:** `packages/cli/src/commands/{scan.ts, link.ts}`, `packages/cli/test/scan.test.ts`.
 
-- `apimap scan [dir] [--source <glob>...] [--dry-run] [--create-stubs]` — fontes = `--source` ou `config.sources` (globs relativos ao catálogo; cada diretório = um repo). Id do serviço: serviço com `repo` terminando no nome do diretório, senão slug do nome do diretório. Resolve referências; não resolvidas listadas por host; `--create-stubs` cria serviço `external` para hosts não resolvidos (id = host sem `www.`/`api.`, pontos→hífens). Relatório: serviços novos/alterados/inalterados, arestas `+`/`-`, hosts não resolvidos, erros por arquivo. `--dry-run` não grava. Sem fontes → erro claro, exit 1. Ao final roda validação e imprime resumo.
-- `apimap link <dir> <source> <target> [--protocol http] [--confidence inferred] [--origin agent] [--evidence arquivo:linha]... [--note texto]` — adiciona/atualiza uma dependência preservando comentários (usado pelas skills). Serviço inexistente → exit 1.
+- `svclens scan [dir] [--source <glob>...] [--dry-run] [--create-stubs]` — fontes = `--source` ou `config.sources` (globs relativos ao catálogo; cada diretório = um repo). Id do serviço: serviço com `repo` terminando no nome do diretório, senão slug do nome do diretório. Resolve referências; não resolvidas listadas por host; `--create-stubs` cria serviço `external` para hosts não resolvidos (id = host sem `www.`/`api.`, pontos→hífens). Relatório: serviços novos/alterados/inalterados, arestas `+`/`-`, hosts não resolvidos, erros por arquivo. `--dry-run` não grava. Sem fontes → erro claro, exit 1. Ao final roda validação e imprime resumo.
+- `svclens link <dir> <source> <target> [--protocol http] [--confidence inferred] [--origin agent] [--evidence arquivo:linha]... [--note texto]` — adiciona/atualiza uma dependência preservando comentários (usado pelas skills). Serviço inexistente → exit 1.
 - Interfaces: `runScan(dir, opts): Promise<number>`, `runLink(dir, source, target, opts): Promise<number>`.
 
 **Testes:** scan sobre catálogo temporário + fixtures cria serviços e arestas; segundo scan não grava nada; `--dry-run` não grava; `link` adiciona dep e mantém comentário existente.
 
 ### Tarefa 6: Skills, documentação e demo
 
-**Arquivos:** `skills/apimap-discover/SKILL.md`, `skills/apimap-add/SKILL.md`, `README.md` (traduzido para português + seção de descoberta), `examples/acme-demo/README.md`.
+**Arquivos:** `skills/svclens-discover/SKILL.md`, `skills/svclens-add/SKILL.md`, `README.md` (traduzido para português + seção de descoberta), `examples/acme-demo/README.md`.
 
-- `apimap-discover`: rodar `apimap scan`; ler código cliente (HttpClient/Refit, fetch/axios, WCF/SOAP, SignalR/WebSocket, produtores/consumidores de fila, FTP, connection strings); para cada achado não coberto, `apimap link ... --confidence inferred --origin agent --evidence arquivo:linha`; nunca registrar URL completa ou segredo; terminar com `apimap validate`.
-- `apimap-add`: conversa curta para criar `services/<id>.yaml` válido (id, nome, kind, grupo, owner, hosts, dependências) e validar.
+- `svclens-discover`: rodar `svclens scan`; ler código cliente (HttpClient/Refit, fetch/axios, WCF/SOAP, SignalR/WebSocket, produtores/consumidores de fila, FTP, connection strings); para cada achado não coberto, `svclens link ... --confidence inferred --origin agent --evidence arquivo:linha`; nunca registrar URL completa ou segredo; terminar com `svclens validate`.
+- `svclens-add`: conversa curta para criar `services/<id>.yaml` válido (id, nome, kind, grupo, owner, hosts, dependências) e validar.
 - Skills em Markdown neutro (frontmatter `name`/`description`), utilizáveis por qualquer agente.
 
-**Verificação final:** `pnpm test`, `pnpm -r typecheck`, `pnpm build`, `pnpm --filter @apimap/web e2e`, e `apimap scan --dry-run` sobre as fixtures com relatório coerente.
+**Verificação final:** `pnpm test`, `pnpm -r typecheck`, `pnpm build`, `pnpm --filter @svclens/web e2e`, e `svclens scan --dry-run` sobre as fixtures com relatório coerente.

@@ -1,4 +1,4 @@
-import type { GraphJson } from '@apimap/core';
+import type { GraphJson } from '@svclens/core';
 import { useState } from 'react';
 import type { FilterState, Visible } from '../filters';
 import { EDIT_LABELS, type EditMode, type Selection } from '../state';

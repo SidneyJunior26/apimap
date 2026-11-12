@@ -1,9 +1,9 @@
-import type { GraphJson } from '@apimap/core';
+import type { GraphJson } from '@svclens/core';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Service } from '@apimap/core';
-import { toMermaid } from '@apimap/core/mermaid';
-import { ServiceSchema } from '@apimap/core/schema';
-import { serviceToYaml } from '@apimap/core/serialize';
+import type { Service } from '@svclens/core';
+import { toMermaid } from '@svclens/core/mermaid';
+import { ServiceSchema } from '@svclens/core/schema';
+import { serviceToYaml } from '@svclens/core/serialize';
 import { api, ApiError } from './api';
 import { serviceFromGraph } from './propose/fromGraph';
 import { deleteFileUrl, editFileUrl, newFileUrl } from './propose/github';
@@ -116,7 +116,7 @@ export function App() {
       const canvas = composeLayers(layers, {
         background: themeBackground(theme),
         glow: theme === 'nebula' ? ['rgba(14, 116, 144, 0.22)', 'rgba(29, 78, 216, 0.17)', 'rgba(190, 24, 93, 0.07)'] : null,
-        caption: `${graph.name} · ${new Date().toLocaleDateString()} · apimap`,
+        caption: `${graph.name} · ${new Date().toLocaleDateString()} · svclens`,
         captionColor: theme === 'paper' ? 'rgba(28, 35, 51, 0.6)' : 'rgba(230, 235, 244, 0.6)',
       });
       await downloadCanvas(canvas, exportFileName(graph.name, new Date()));
@@ -137,7 +137,7 @@ export function App() {
       await navigator.clipboard.writeText(toMermaid(subset));
       setNotice(`Mermaid diagram with ${subset.nodes.length} services copied. Paste it in a Markdown file inside a mermaid code block.`);
     } catch {
-      setNotice('The browser blocked the clipboard. Use "apimap export" on the command line instead.');
+      setNotice('The browser blocked the clipboard. Use "svclens export" on the command line instead.');
     }
   };
   const select = (id: string | null) => setSelection((s) => ({ ...s, selectedId: id, focusMode: 'none' }));
@@ -212,7 +212,7 @@ export function App() {
               <p>Use "{editMode === 'local' ? 'New service' : 'Propose service'}" to add the first one.</p>
             ) : (
               <p>
-                Add YAML files to <code>services/</code> and run <code>apimap build</code>.
+                Add YAML files to <code>services/</code> and run <code>svclens build</code>.
               </p>
             )}
           </div>

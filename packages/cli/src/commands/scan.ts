@@ -13,8 +13,8 @@ import {
   type Evidence,
   type ScannedDependency,
   type Service,
-} from '@apimap/core';
-import { scanRepo, type RepoScan } from '@apimap/scanners';
+} from '@svclens/core';
+import { scanRepo, type RepoScan } from '@svclens/scanners';
 import fg from 'fast-glob';
 import pc from 'picocolors';
 import { formatDiagnostics } from '../report.js';
@@ -22,7 +22,7 @@ import { isGitSource, repoLabel, syncGitSource } from '../sources.js';
 import { loadAndValidate } from './check.js';
 
 export interface ScanOptions {
-  /** Repository directory globs; defaults to `sources` in apimap.config.yaml. Relative to the catalog. */
+  /** Repository directory globs; defaults to `sources` in svclens.config.yaml. Relative to the catalog. */
   source?: string[];
   dryRun?: boolean;
   /** Create `external` services for unresolved hosts outside the internal domains. */
@@ -95,7 +95,7 @@ export async function runScan(dir: string, opts: ScanOptions): Promise<number> {
 
   const globs = opts.source?.length ? opts.source : catalog.config.sources;
   if (!globs.length) {
-    console.error('no sources: pass --source <glob> or set "sources" in apimap.config.yaml');
+    console.error('no sources: pass --source <glob> or set "sources" in svclens.config.yaml');
     return 1;
   }
   const sources = await expandSources(root, globs, opts.fetch ?? true);

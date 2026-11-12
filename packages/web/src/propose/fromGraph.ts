@@ -1,4 +1,4 @@
-import type { GraphJson, Service } from '@apimap/core';
+import type { GraphJson, Service } from '@svclens/core';
 
 /**
  * The published site only has graph.json, not the YAML files. This rebuilds the service from it.

@@ -9,7 +9,7 @@ import { runLink, runScan } from '../src/index.js';
 const REPOS = fileURLToPath(new URL('../../scanners/test/fixtures/repos', import.meta.url));
 
 async function catalog(files: Record<string, string>): Promise<string> {
-  const dir = await mkdtemp(path.join(os.tmpdir(), 'apimap-scan-'));
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'svclens-scan-'));
   for (const [rel, text] of Object.entries(files)) {
     await mkdir(path.dirname(path.join(dir, rel)), { recursive: true });
     await writeFile(path.join(dir, rel), text);
@@ -19,7 +19,7 @@ async function catalog(files: Record<string, string>): Promise<string> {
 
 const seed = () =>
   catalog({
-    'apimap.config.yaml': `sources:\n  - ${REPOS}/*\n`,
+    'svclens.config.yaml': `sources:\n  - ${REPOS}/*\n`,
     'services/catalog.yaml': [
       'id: catalog-api',
       'name: Catalog',
@@ -100,7 +100,7 @@ describe('runScan', () => {
 
   it('never stubs hosts from internal domains', async () => {
     const dir = await seed();
-    await writeFile(path.join(dir, 'apimap.config.yaml'), `sources:\n  - ${REPOS}/*\nscan:\n  internalDomains: [acme.internal, '*.corp.example']\n`);
+    await writeFile(path.join(dir, 'svclens.config.yaml'), `sources:\n  - ${REPOS}/*\nscan:\n  internalDomains: [acme.internal, '*.corp.example']\n`);
     expect(await runScan(dir, { createStubs: true, source: [`${REPOS}/orders-api`] })).toBe(0);
     const files = await readdir(path.join(dir, 'services'));
     expect(files.filter((f) => f.includes('acme-internal'))).toEqual([]);

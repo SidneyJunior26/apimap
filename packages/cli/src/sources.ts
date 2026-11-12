@@ -20,7 +20,7 @@ export function repoLabel(url: string): string {
   return raw.replace(/\.git$/i, '').replace(/\/+$/, '').replace(/^\/+/, '');
 }
 
-export const CACHE_DIR = '.apimap/repos';
+export const CACHE_DIR = '.svclens/repos';
 
 async function exists(p: string): Promise<boolean> {
   return access(p).then(() => true, () => false);
@@ -33,7 +33,7 @@ async function exists(p: string): Promise<boolean> {
 export async function syncGitSource(root: string, url: string, opts: { fetch: boolean }): Promise<string> {
   const safe = safeGitUrl(url);
   if (!safe) throw new Error(`refusing unsafe git source "${url}"`);
-  const cacheRoot = path.join(root, '.apimap');
+  const cacheRoot = path.join(root, '.svclens');
   await mkdir(cacheRoot, { recursive: true });
   await writeFile(path.join(cacheRoot, '.gitignore'), '*\n');
   const dir = path.join(root, CACHE_DIR, ...repoLabel(safe).split('/').filter((p) => p && p !== '..' && p !== '.'));

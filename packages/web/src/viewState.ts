@@ -8,7 +8,7 @@ export interface ViewState {
 
 const VIEWS: View[] = ['2d', '3d'];
 const THEMES: Theme[] = ['nebula', 'paper'];
-export const STORAGE_KEY = 'apimap:view';
+export const STORAGE_KEY = 'svclens:view';
 
 const pick = <T extends string>(value: unknown, allowed: T[]): T | undefined =>
   allowed.includes(value as T) ? (value as T) : undefined;

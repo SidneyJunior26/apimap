@@ -6,7 +6,7 @@ import { watchCatalog } from '../src/serve/watch.js';
 
 describe('watchCatalog', () => {
   it('fires after changes in services/ and in the config, coalescing bursts', { timeout: 20_000 }, async () => {
-    const root = await mkdtemp(path.join(os.tmpdir(), 'apimap-watch-'));
+    const root = await mkdtemp(path.join(os.tmpdir(), 'svclens-watch-'));
     await mkdir(path.join(root, 'services'));
     let calls = 0;
     const stop = await watchCatalog(root, () => calls++, { debounceMs: 300 });
@@ -16,7 +16,7 @@ describe('watchCatalog', () => {
       // Writes in one burst are coalesced; allow one extra event if the machine stalls between them.
       expect(calls).toBeLessThanOrEqual(2);
       const before = calls;
-      await writeFile(path.join(root, 'apimap.config.yaml'), 'name: X\n');
+      await writeFile(path.join(root, 'svclens.config.yaml'), 'name: X\n');
       await vi.waitFor(() => expect(calls).toBeGreaterThan(before), { timeout: 5000, interval: 50 });
     } finally {
       await stop();

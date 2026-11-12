@@ -42,7 +42,7 @@ describe('diffGraphs', () => {
 describe('formatDiff', () => {
   it('renders markdown with sections', () => {
     const md = formatDiff(diffGraphs(before, after), 'markdown');
-    expect(md).toContain('### apimap');
+    expect(md).toContain('### svclens');
     expect(md).toContain('**+1** services');
     expect(md).toContain('- `new`');
     expect(md).toContain('`a` → `b` (http)');
