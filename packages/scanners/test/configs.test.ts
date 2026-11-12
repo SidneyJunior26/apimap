@@ -134,3 +134,15 @@ describe('monorepo (mono-repo)', () => {
     expect((await scanProjects(repo('partner-gateway'))).map((p) => p.sub)).toEqual(['']);
   });
 });
+
+describe('client applications', () => {
+  it('marks browser and desktop apps as clients', async () => {
+    expect((await scanRepo(repo('client-spa'))).hints.role).toBe('client');
+    expect((await scanRepo(repo('desktop-app'))).hints.role).toBe('client');
+  });
+
+  it('leaves server components without a role', async () => {
+    expect((await scanRepo(repo('storefront-bff'))).hints.role).toBeUndefined();
+    expect((await scanRepo(repo('orders-api'))).hints.role).toBeUndefined();
+  });
+});

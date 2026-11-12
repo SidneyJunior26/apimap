@@ -4,6 +4,7 @@ import { sameValue } from './stable.js';
 export interface ScanHints {
   name?: string;
   kind?: string;
+  role?: Service['role'];
   description?: string;
   repo?: string;
   tech: string[];
@@ -49,6 +50,7 @@ export function mergeScan(existing: Service | undefined, id: string, hints: Scan
 
   const service: Service = {
     ...base,
+    ...((base.role ?? hints.role) ? { role: base.role ?? hints.role } : {}),
     description: base.description ?? hints.description,
     repo: base.repo ?? hints.repo,
     tech: union(base.tech, hints.tech),

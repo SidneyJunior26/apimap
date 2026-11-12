@@ -2,6 +2,7 @@ import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import {
   buildHostIndex,
+  DIRECT_ACCESS_PROTOCOLS,
   edgeKey,
   isInternalHost,
   loadCatalog,
@@ -164,7 +165,14 @@ export async function runScan(dir: string, opts: ScanOptions): Promise<number> {
       deps.set(key, { target, protocol, confidence, origin: 'scan', evidence: evidence.slice(0, MAX_EVIDENCE), ...(note ? { note } : {}) });
     };
 
+    // Client applications (browser, desktop) reach data and telemetry through a server layer, so a direct
+    // database or log relation found in their config is not a dependency of theirs.
+    const role = scan.declared?.role ?? byId.get(id)?.role ?? scan.hints.role;
     for (const ref of scan.references) {
+      if (role === 'client' && DIRECT_ACCESS_PROTOCOLS.has(ref.protocol)) {
+        scan.inconclusive.push({ file: ref.evidence.file, ...(ref.evidence.key ? { key: ref.evidence.key } : {}), ...(ref.evidence.line ? { line: ref.evidence.line } : {}), reason: `client application: ${ref.protocol} access goes through a server layer, relation not recorded` });
+        continue;
+      }
       let target = resolveHost(index, ref.host, ref.path);
       if (!target && opts.createStubs && !isInternalHost(ref.host, internalDomains)) {
         target = stubId(ref.host);

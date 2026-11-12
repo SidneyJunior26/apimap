@@ -247,6 +247,15 @@ Cada URL encontrada é comparada com o campo `hosts` dos serviços do catálogo.
 > O catálogo guarda só o host e a evidência (`arquivo:linha`, chave e ambiente). URLs completas, usuários, senhas, tokens, chaves e connection strings não são gravados, e arquivos `.env` reais nem são lidos (só `.env.example`, `.env.sample`, `.env.template` e `.env.development`). Arquivos acima de 1 MB e lockfiles também ficam de fora.
 
 <details>
+<summary>Aplicações cliente e componentes server-side</summary>
+
+O serviço pode ter `role: client` ou `role: server`. O scan marca como `client` apps de navegador sem framework de servidor (React, Vue, Angular ou Svelte sem Express, Next e similares) e apps .NET de desktop (WPF, Windows Forms, MAUI) ou Blazor WebAssembly. Um app cliente fala com servidores, não com banco nem com destino de log: uma connection string ou URL de banco encontrada na configuração dele não vira dependência, e o relatório lista o item como inconclusivo. Um componente server-side mantém a relação direta com o banco.
+
+Dá para corrigir a heurística escrevendo `role` no `svclens.yaml` do repositório ou no YAML do serviço. `svclens validate` avisa (`client-direct-access`) quando um serviço `client` depende direto de banco ou de log.
+
+</details>
+
+<details>
 <summary>Monorepos</summary>
 
 Quando um repositório tem dois ou mais projetos de aplicação (um `.csproj` web, worker ou executável, ou um `package.json` com `scripts.start` ou um framework de servidor), cada um vira um serviço, com id `repositório-projeto`. Bibliotecas, pastas de testes, exemplos e documentação ficam de fora. Se houver um `svclens.yaml` na raiz, o repositório continua sendo um serviço só. Arquivos de configuração na raiz que não pertencem a nenhum projeto não são analisados e aparecem no relatório como ignorados.
